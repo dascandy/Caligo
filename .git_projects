@@ -1,0 +1,7 @@
+{
+    "toolsets": {
+        "source": "direct",
+        "url": "git@github.com:dascandy/toolsets",
+        "version": ""
+    }
+}
