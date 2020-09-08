@@ -1,10 +1,11 @@
-#include "aes.h"
+#include "caligo/aes.h"
 
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#ifdef __x86_64__
 #include <x86intrin.h>
 
 template <uint8_t round>
@@ -62,4 +63,6 @@ AesKeySchedule<256>::AesKeySchedule(const std::span<uint8_t>& key) {
   a ^= _mm_slli_si128 (a, 0x4) ^ _mm_slli_si128 (a, 0x8) ^ _mm_slli_si128 (a, 0xC) ^ _mm_shuffle_epi32(_mm_aeskeygenassist_si128 (b,0x40), 0xff);
   eroundKeys[14]=a;
 }
-
+#else
+#error Not implemented
+#endif

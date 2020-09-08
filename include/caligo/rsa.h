@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bignum.h"
-#include "asn1.h"
+#include "caligo/bignum.h"
+#include "caligo/asn1.h"
 
 template <size_t N = 2048>
 struct rsa_public_key {

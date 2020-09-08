@@ -1,4 +1,4 @@
-#include "sha2.h"
+#include "caligo/sha2.h"
 #include <cstdio>
 
 SHA256::SHA256() {
@@ -12,12 +12,12 @@ SHA256::SHA256() {
   w[7] = 0x5be0cd19;
 }
 
-void SHA256::add(std::span<const uint8_t> data) {
+void SHA256::add(s2::span<const uint8_t> data) {
   size_t offset = msglength % (2*hashsize);
   size_t inoffset = 0;
   msglength += data.size();
   if (offset) {
-    size_t copyNow = std::min(data.size(), 2*hashsize - offset);
+    size_t copyNow = s2::min(data.size(), 2*hashsize - offset);
     memcpy(chunk+offset, data.data(), copyNow);
     inoffset = copyNow;
     offset += copyNow;
@@ -83,11 +83,11 @@ void SHA256::processChunk() {
   w[7] += h;
 }
 
-SHA256::operator std::vector<uint8_t>() const {
+SHA256::operator s2::vector<uint8_t>() const {
   auto copy = *this;
   uint64_t padsize = 2*hashsize - ((msglength + 8) % (2*hashsize));
   uint8_t zeroes[2*hashsize+1] = {0x80};
-  copy.add(std::span<const uint8_t>(zeroes, padsize));
+  copy.add(s2::span<const uint8_t>(zeroes, padsize));
 
   size_t len = msglength * 8;
   uint8_t msgsize[8];
@@ -95,8 +95,8 @@ SHA256::operator std::vector<uint8_t>() const {
     msgsize[n] = len & 0xFF;
     len >>= 8;
   }
-  copy.add(std::span<const uint8_t>(msgsize, 8));
-  std::vector<uint8_t> output;
+  copy.add(s2::span<const uint8_t>(msgsize, 8));
+  s2::vector<uint8_t> output;
   for (size_t i = 0; i < 8; i++) {
     for (size_t j = 0; j < sizeof(w[0]); j++) {
       output.push_back((copy.w[i] >> ((8*sizeof(w[0]) - 8 - 8*j))) & 0xFF);
@@ -116,12 +116,12 @@ SHA512::SHA512() {
   w[7] = 0x5be0cd19137e2179;
 }
 
-void SHA512::add(std::span<const uint8_t> data) {
+void SHA512::add(s2::span<const uint8_t> data) {
   size_t offset = msglength % (2*hashsize);
   size_t inoffset = 0;
   msglength += data.size();
   if (offset) {
-    size_t copyNow = std::min(data.size(), 2*hashsize - offset);
+    size_t copyNow = s2::min(data.size(), 2*hashsize - offset);
     memcpy(chunk+offset, data.data(), copyNow);
     inoffset = copyNow;
     offset += copyNow;
@@ -205,11 +205,11 @@ void SHA512::processChunk() {
   w[7] += h;
 }
 
-SHA512::operator std::vector<uint8_t>() const {
+SHA512::operator s2::vector<uint8_t>() const {
   auto copy = *this;
   uint64_t padsize = 2*hashsize - ((msglength + 16) % (2*hashsize));
   uint8_t zeroes[2*hashsize+1] = {0x80};
-  copy.add(std::span<const uint8_t>(zeroes, padsize));
+  copy.add(s2::span<const uint8_t>(zeroes, padsize));
 
   size_t len = msglength * 8;
   uint8_t msgsize[16];
@@ -217,8 +217,8 @@ SHA512::operator std::vector<uint8_t>() const {
     msgsize[n] = len & 0xFF;
     len >>= 8;
   }
-  copy.add(std::span<const uint8_t>(msgsize, 16));
-  std::vector<uint8_t> output;
+  copy.add(s2::span<const uint8_t>(msgsize, 16));
+  s2::vector<uint8_t> output;
   for (size_t i = 0; i < 8; i++) {
     for (size_t j = 0; j < sizeof(w[0]); j++) {
       output.push_back((copy.w[i] >> ((8*sizeof(w[0]) - 8 - 8*j))) & 0xFF);

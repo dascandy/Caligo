@@ -2,7 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <span.h>
+#include <s2/span>
 
 inline uint64_t generate_random_value() {
   // LCG, using only the major 32 bits to have high enough entropy in those. Still a PRNG.

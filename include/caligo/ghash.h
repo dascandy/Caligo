@@ -2,16 +2,6 @@
 
 #include <x86intrin.h>
 
-inline void debug(const char* name, __m128i v) {
-  uint8_t a[16];
-  _mm_storeu_si128((__m128i*)a, v);
-  printf("%s: ", name);
-  for (auto& c : a) {
-    printf("%02x", c);
-  }
-  printf("\n");
-}
-
 inline __m128i reflect(__m128i v) {
   static const __m128i x0 = _mm_setr_epi32(0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0), 
                        y0 = _mm_setr_epi32(0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F);

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include <s2/span>
+#ifdef __x86_64__
 #include <x86intrin.h>
-#include <span>
+#endif
 
 template <size_t bits>
 class AesKeySchedule;
@@ -11,7 +13,7 @@ __m128i AesEncrypt(const AesKeySchedule<bits>& key, __m128i block);
 template <size_t bits>
 class AesKeySchedule {
 public:
-  explicit AesKeySchedule(const std::span<uint8_t>& key);
+  explicit AesKeySchedule(const s2::span<uint8_t>& key);
 private:
   static constexpr size_t rounds = 6 + bits / 32;
   __m128i eroundKeys[rounds + 1];
@@ -20,13 +22,17 @@ private:
 };
 
 template <size_t bits>
-__m128i AesEncrypt(const AesKeySchedule<bits>& key, __m128i block) {
+inline __m128i AesEncrypt(const AesKeySchedule<bits>& key, __m128i block) {
+#ifdef __x86_64__
   block ^= key.eroundKeys[0];
   for (size_t n = 1; n < key.rounds; n++) {
     block = _mm_aesenc_si128(block, key.eroundKeys[n]);
   }
   block = _mm_aesenclast_si128(block, key.eroundKeys[key.rounds]);
   return block;
+#else
+#error No implementation
+#endif
 }
 
 template <size_t bits>

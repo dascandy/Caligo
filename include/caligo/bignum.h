@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <span>
-#include <vector>
-#include <string>
+#include <s2/span>
+#include <s2/vector>
+#include <s2/string>
 
 template <size_t N>
 struct bignum {
@@ -36,14 +36,14 @@ struct bignum {
       v[n++] = i;
     }
   }
-  constexpr bignum(std::span<const uint32_t> data) 
+  constexpr bignum(s2::span<const uint32_t> data) 
   : v{}
   {
     for (size_t i = 0; i < N; i++) {
       v[i] = data[i];
     }
   }
-  constexpr bignum(std::span<const uint8_t> data) 
+  constexpr bignum(s2::span<const uint8_t> data) 
   : v{}
   {
       for (size_t i = 0; i < N; i++) {
@@ -52,10 +52,10 @@ struct bignum {
   }
   template <size_t K>
   constexpr bignum<K> slice(size_t start) {
-    return bignum<K>(std::span<uint32_t>(v+start, v+start+K));
+    return bignum<K>(s2::span<uint32_t>(v+start, v+start+K));
   }
-  std::vector<uint8_t> as_bytes() const {
-    std::vector<uint8_t> bytes;
+  s2::vector<uint8_t> as_bytes() const {
+    s2::vector<uint8_t> bytes;
     for (size_t i = 0; i < N; i++) {
       bytes.push_back(v[i] & 0xFF);
       bytes.push_back((v[i] >> 8) & 0xFF);
@@ -102,7 +102,7 @@ struct bignum {
     }
     return t;
   }
-  friend constexpr std::pair<bool, bignum> operator+(const bignum& a, const bignum& b)
+  friend constexpr s2::pair<bool, bignum> operator+(const bignum& a, const bignum& b)
   {
     bignum v = a;
     bool overflow = v.add(b.v);
@@ -135,7 +135,7 @@ struct bignum {
     }
     return x;
   }
-  friend constexpr std::pair<bool, bignum> operator-(const bignum& a, const bignum& b)
+  friend constexpr s2::pair<bool, bignum> operator-(const bignum& a, const bignum& b)
   {
     bignum v = a;
     bool underflow = v.sub(b.v);
@@ -160,7 +160,7 @@ struct bignum {
     a ^= ones;
     b ^= ones;
   }
-  friend std::string to_string(const bignum& x) {
+  friend s2::string to_string(const bignum& x) {
     char buffer[10*N];
     buffer[0] = '\0';
     for (size_t n = 0; n < N; n++) {

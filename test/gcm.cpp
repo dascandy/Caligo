@@ -1,9 +1,9 @@
-#include <catch.hpp>
-#include <gcm.h>
-#include <aes.h>
+#include <catch/catch.hpp>
+#include <caligo/gcm.h>
+#include <caligo/aes.h>
 
 template <size_t bits>
-void test_aes(std::vector<uint8_t> key, std::vector<uint8_t> iv, std::vector<uint8_t> plaintext, std::vector<uint8_t> ciphertext, std::vector<uint8_t> aad, std::array<uint8_t, 16> tag) {
+void test_aes(s2::vector<uint8_t> key, s2::vector<uint8_t> iv, s2::vector<uint8_t> plaintext, s2::vector<uint8_t> ciphertext, s2::vector<uint8_t> aad, s2::array<uint8_t, 16> tag) {
   auto [c_data, tag_data] = GCM<AES<bits>>({key, iv}).Encrypt(plaintext, aad);
   REQUIRE(c_data == ciphertext);
   REQUIRE(tag_data == tag);

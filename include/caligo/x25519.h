@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <span>
-#include <vector>
-#include <string>
-#include "bignum.h"
+#include <s2/span>
+#include <s2/vector>
+#include <s2/string>
+#include "caligo/bignum.h"
 
 struct ec_value {
   static constexpr bignum<8> modulus = { 0xFFFFFFED, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x7FFFFFFF };
@@ -21,7 +21,7 @@ struct ec_value {
   : v(nv) {}
   constexpr ec_value(bignum<8> nv) 
   : v(nv) {}
-  std::vector<uint8_t> as_bytes() const { return v.as_bytes(); }
+  s2::vector<uint8_t> as_bytes() const { return v.as_bytes(); }
   friend ec_value operator+(const ec_value& a, const ec_value& b)
   {
     auto [overflow, value] = a.v + b.v;
@@ -100,8 +100,8 @@ struct ec_value {
       t >>= 32;
       x[i+i+1] = (uint32_t)(t & 0xFFFFFFFF);
     }
-    ec_value upper(std::span<uint32_t>(x+8, x+16));
-    ec_value lower(std::span<uint32_t>(x, x+8));
+    ec_value upper(s2::span<uint32_t>(x+8, x+16));
+    ec_value lower(s2::span<uint32_t>(x, x+8));
     // add upper 38x to lower
     ec_value upper2 = upper + upper;
     ec_value upper4 = upper2 + upper2;
@@ -130,7 +130,7 @@ struct ec_value {
     ec_value z2_240_0 = z2_120_0.square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square().square() * z2_120_0;
     return z2_240_0.square().square().square().square().square().square().square().square().square().square().square().square().square().square().square() * z2_15_5 * z11;
   }
-  friend std::string to_string(const ec_value& x) {
+  friend s2::string to_string(const ec_value& x) {
     char buffer[80];
     sprintf(buffer, "%08X %08X %08X %08X %08X %08X %08X %08X", x.v[0], x.v[1], x.v[2], x.v[3], x.v[4], x.v[5], x.v[6], x.v[7]);
     return buffer;
@@ -140,10 +140,6 @@ struct ec_value {
     return bignum<8>{values};
   }
 };
-
-inline std::ostream& operator<<(std::ostream& os, const ec_value& v) {
-  return os << to_string(v);
-}
 
 inline ec_value X25519(ec_value k, ec_value u) {
    k.normalize();
