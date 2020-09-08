@@ -1,4 +1,9 @@
 {
+    "catch": {
+        "source": "direct",
+        "url": "git@github.com:evokable/catch",
+        "version": ""
+    },
     "s2": {
         "source": "direct",
         "url": "git@github.com:dascandy/s2",
