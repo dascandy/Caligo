@@ -2,7 +2,7 @@
 
 #include "caligo/ghash.h"
 #include <x86intrin.h>
-#include <s2/span>
+#include <span>
 #include <cstring>
 #include "caligo/key_iv_pair.h"
 
@@ -16,7 +16,7 @@ struct GCM {
 
     h = reflect(Cipher::Encrypt(sched, {0,0}));
   }
-  void ctr_inc(s2::array<uint8_t, Cipher::size>& ctr) {
+  void ctr_inc(std::array<uint8_t, Cipher::size>& ctr) {
     ctr[15]++;
     if (ctr[15] != 0) return;
     ctr[14]++;
@@ -25,7 +25,7 @@ struct GCM {
     if (ctr[13] != 0) return;
     ctr[12]++;
   }
-  s2::array<uint8_t, 16> calculate_tag(const s2::span<const uint8_t> ciphertext, const s2::span<const uint8_t> aad) {
+  std::array<uint8_t, 16> calculate_tag(const std::span<const uint8_t> ciphertext, const std::span<const uint8_t> aad) {
     size_t aad_blocks = aad.size() / Cipher::size;
     size_t text_blocks = ciphertext.size() / Cipher::size;
     __m128i chash = { 0, 0};
@@ -33,7 +33,7 @@ struct GCM {
       chash = ghash_block(reflect(_mm_loadu_si128((__m128i*)(aad.data() + Cipher::size*n))), h, chash);
     }
     if (size_t bytes = aad.size() - aad_blocks * Cipher::size; bytes > 0) {
-      s2::array<uint8_t, Cipher::size> buffer;
+      std::array<uint8_t, Cipher::size> buffer;
       memcpy(buffer.data(), aad.data() + aad.size() - bytes, bytes);
       memset(buffer.data() + bytes, 0, Cipher::size - bytes);
       chash = ghash_block(reflect(_mm_loadu_si128((__m128i*)(buffer.data()))), h, chash);
@@ -42,7 +42,7 @@ struct GCM {
       chash = ghash_block(reflect(_mm_loadu_si128((__m128i*)(ciphertext.data() + Cipher::size*n))), h, chash);
     }
     if (size_t bytes = ciphertext.size() - text_blocks * Cipher::size; bytes > 0) {
-      s2::array<uint8_t, Cipher::size> buffer;
+      std::array<uint8_t, Cipher::size> buffer;
       memcpy(buffer.data(), ciphertext.data() + ciphertext.size() - bytes, bytes);
       memset(buffer.data() + bytes, 0, Cipher::size - bytes);
       chash = ghash_block(reflect(_mm_loadu_si128((__m128i*)(buffer.data()))), h, chash);
@@ -59,12 +59,12 @@ struct GCM {
     chash = ghash_block(reflect(_mm_loadu_si128((__m128i*)(sizes))), h, chash);
 
     chash ^= z;
-    s2::array<uint8_t, 16> calc_tag;
+    std::array<uint8_t, 16> calc_tag;
     _mm_storeu_si128((__m128i*)calc_tag.data(), reflect(chash));
     return calc_tag;
   }
-  s2::pair<s2::vector<uint8_t>, bool> Decrypt(const s2::span<const uint8_t> ciphertext, const s2::span<const uint8_t> aad, s2::array<uint8_t, 16> tag) {
-    s2::array<uint8_t, Cipher::size> ctr;
+  std::pair<std::vector<uint8_t>, bool> Decrypt(const std::span<const uint8_t> ciphertext, const std::span<const uint8_t> aad, std::array<uint8_t, 16> tag) {
+    std::array<uint8_t, Cipher::size> ctr;
     memcpy(ctr.data(), iv.data(), Cipher::size - 4);
     ctr[4] ^= ((message_counter >> 56) & 0xFF);
     ctr[5] ^= ((message_counter >> 48) & 0xFF);
@@ -81,23 +81,23 @@ struct GCM {
     z = reflect(Cipher::Encrypt(sched, _mm_loadu_si128((__m128i*)ctr.data())));
     message_counter++;
 
-    s2::vector<uint8_t> plaintext;
+    std::vector<uint8_t> plaintext;
     size_t blocks = (ciphertext.size() + Cipher::size - 1) / Cipher::size;
     plaintext.resize(blocks * Cipher::size);
     for (size_t n = 0; n < blocks; n++) {
       ctr_inc(ctr);
       __m128i block = Cipher::Encrypt(sched, _mm_loadu_si128((__m128i*)ctr.data()));
       _mm_storeu_si128((__m128i*)(plaintext.data() + n * Cipher::size), block);
-      for (size_t k = 0; k < s2::min(ciphertext.size() - n * Cipher::size, Cipher::size); k++) {
+      for (size_t k = 0; k < std::min(ciphertext.size() - n * Cipher::size, Cipher::size); k++) {
         plaintext[n * Cipher::size + k] ^= ciphertext[n * Cipher::size + k];
       }
     }
     plaintext.resize(ciphertext.size());
-    s2::array<uint8_t, 16> calc_tag = calculate_tag(ciphertext, aad);
-    return {s2::move(plaintext), calc_tag == tag};
+    std::array<uint8_t, 16> calc_tag = calculate_tag(ciphertext, aad);
+    return {std::move(plaintext), calc_tag == tag};
   }
-  s2::pair<s2::vector<uint8_t>, s2::array<uint8_t, 16>> Encrypt(const s2::span<const uint8_t> plaintext, const s2::span<const uint8_t> aad) {
-    s2::array<uint8_t, Cipher::size> ctr;
+  std::pair<std::vector<uint8_t>, std::array<uint8_t, 16>> Encrypt(const std::span<const uint8_t> plaintext, const std::span<const uint8_t> aad) {
+    std::array<uint8_t, Cipher::size> ctr;
     memcpy(ctr.data(), iv.data(), Cipher::size - 4);
     ctr[4] ^= ((message_counter >> 56) & 0xFF);
     ctr[5] ^= ((message_counter >> 48) & 0xFF);
@@ -114,25 +114,25 @@ struct GCM {
     z = reflect(Cipher::Encrypt(sched, _mm_loadu_si128((__m128i*)ctr.data())));
     message_counter++;
 
-    s2::vector<uint8_t> ciphertext;
+    std::vector<uint8_t> ciphertext;
     size_t blocks = (plaintext.size() + Cipher::size - 1) / Cipher::size;
     ciphertext.resize(blocks * Cipher::size);
     for (size_t n = 0; n < blocks; n++) {
       ctr_inc(ctr);
       __m128i block = Cipher::Encrypt(sched, _mm_loadu_si128((__m128i*)ctr.data()));
       _mm_storeu_si128((__m128i*)(ciphertext.data() + n * Cipher::size), block);
-      for (size_t k = 0; k < s2::min(plaintext.size() - n * Cipher::size, Cipher::size); k++) {
+      for (size_t k = 0; k < std::min(plaintext.size() - n * Cipher::size, Cipher::size); k++) {
         ciphertext[n * Cipher::size + k] ^= plaintext[n * Cipher::size + k];
       }
     }
     ciphertext.resize(plaintext.size());
 
-    s2::array<uint8_t, 16> calc_tag = calculate_tag(ciphertext, aad);
+    std::array<uint8_t, 16> calc_tag = calculate_tag(ciphertext, aad);
     return {std::move(ciphertext), std::move(calc_tag)};
   }
   typename Cipher::KeySchedule sched;
   __m128i h, z;
   uint64_t message_counter = 0;
-  s2::vector<uint8_t> iv;
+  std::vector<uint8_t> iv;
 };
 

@@ -1,31 +1,31 @@
 #pragma once
 
-#include <s2/vector>
+#include <vector>
 #include <cstdint>
-#include <s2/string>
+#include <string>
 #include "caligo/key_iv_pair.h"
 
 template <typename Hash>
-s2::vector<uint8_t> HMAC(s2::vector<uint8_t> text, s2::vector<uint8_t> key) {
+std::vector<uint8_t> HMAC(std::vector<uint8_t> text, std::vector<uint8_t> key) {
   key.resize(Hash::hashsize*2);
-  s2::vector<uint8_t> o = key, i = key;
+  std::vector<uint8_t> o = key, i = key;
   for (auto& c : o) c ^= 0x5C;
   for (auto& c : i) c ^= 0x36;
   i.insert(i.end(), text.begin(), text.end());
-  s2::vector<uint8_t> h1 = Hash(i);
+  std::vector<uint8_t> h1 = Hash(i);
   o.insert(o.end(), h1.begin(), h1.end());
   return Hash(o);
 }
 
 template <typename Hash>
-s2::vector<uint8_t> HKDF_Extract(s2::vector<uint8_t> salt, s2::vector<uint8_t> ikm) {
+std::vector<uint8_t> HKDF_Extract(std::vector<uint8_t> salt, std::vector<uint8_t> ikm) {
   return HMAC<Hash>(ikm, salt);
 }
 
 template <typename Hash>
-s2::vector<uint8_t> HKDF_Expand(s2::vector<uint8_t> prk, s2::vector<uint8_t> info, size_t len) {
-  s2::vector<uint8_t> buffer;
-  s2::vector<uint8_t> lastT;
+std::vector<uint8_t> HKDF_Expand(std::vector<uint8_t> prk, std::vector<uint8_t> info, size_t len) {
+  std::vector<uint8_t> buffer;
+  std::vector<uint8_t> lastT;
   size_t n = 1;
   while (buffer.size() < len) {
     lastT.insert(lastT.end(), info.begin(), info.end());
@@ -38,11 +38,11 @@ s2::vector<uint8_t> HKDF_Expand(s2::vector<uint8_t> prk, s2::vector<uint8_t> inf
 }
 
 template <typename Hash>
-s2::vector<uint8_t> HKDF_Expand_Label(s2::vector<uint8_t> prk, s2::string label, s2::vector<uint8_t> context, size_t len) {
-  s2::vector<uint8_t> info;
+std::vector<uint8_t> HKDF_Expand_Label(std::vector<uint8_t> prk, std::string label, std::vector<uint8_t> context, size_t len) {
+  std::vector<uint8_t> info;
   info.push_back((len >> 8) & 0xFF);
   info.push_back(len & 0xFF);
-  s2::string l = "tls13 " + label;
+  std::string l = "tls13 " + label;
   info.push_back(l.size());
   info.insert(info.end(), l.begin(), l.end());
   info.push_back(context.size());
@@ -52,30 +52,30 @@ s2::vector<uint8_t> HKDF_Expand_Label(s2::vector<uint8_t> prk, s2::string label,
 
 template <typename Hash>
 struct secret {
-  s2::vector<uint8_t> data;
+  std::vector<uint8_t> data;
   template <typename Cipher>
-  key_iv_pair<Cipher> get_key_iv(s2::vector<uint8_t> hashSoFar, bool client, bool handshake = false) {
+  key_iv_pair<Cipher> get_key_iv(std::vector<uint8_t> hashSoFar, bool client, bool handshake = false) {
     const char* label = client ? (handshake ? "c hs traffic" : "c ap traffic") : (handshake ? "s hs traffic" : "s ap traffic");
-    s2::vector<uint8_t> traffic_secret = HKDF_Expand_Label<Hash>(data, label, hashSoFar, data.size());
+    std::vector<uint8_t> traffic_secret = HKDF_Expand_Label<Hash>(data, label, hashSoFar, data.size());
     return {HKDF_Expand_Label<Hash>(traffic_secret, "key", {}, Cipher::keysize), HKDF_Expand_Label<Hash>(traffic_secret, "iv", {}, Cipher::ivsize)};
   }
-  s2::vector<uint8_t> get_finished_key(s2::vector<uint8_t> hashSoFar, bool client) {
+  std::vector<uint8_t> get_finished_key(std::vector<uint8_t> hashSoFar, bool client) {
     const char* label = client ? "c hs traffic" : "s hs traffic";
-    s2::vector<uint8_t> traffic_secret = HKDF_Expand_Label<Hash>(data, label, hashSoFar, data.size());
+    std::vector<uint8_t> traffic_secret = HKDF_Expand_Label<Hash>(data, label, hashSoFar, data.size());
     return HKDF_Expand_Label<Hash>(traffic_secret, "finished", {}, Hash::hashsize);
   }
 };
 
 template <typename Hash>
-secret<Hash> HKDF_HandshakeSecret(s2::vector<uint8_t> shared) {
-  s2::vector<uint8_t> nothing;
+secret<Hash> HKDF_HandshakeSecret(std::vector<uint8_t> shared) {
+  std::vector<uint8_t> nothing;
   nothing.resize(Hash::hashsize);
   return {HKDF_Extract<Hash>(HKDF_Expand_Label<Hash>(HKDF_Extract<Hash>(nothing, nothing), "derived", Hash(), Hash::hashsize), shared)};
 }
 
 template <typename Hash>
 secret<Hash> HKDF_MasterSecret(secret<Hash> secret) {
-  s2::vector<uint8_t> nothing;
+  std::vector<uint8_t> nothing;
   nothing.resize(Hash::hashsize);
   return {HKDF_Extract<Hash>(HKDF_Expand_Label<Hash>(secret.data, "derived", Hash(), Hash::hashsize), nothing)};
 }
@@ -86,12 +86,12 @@ secret<Hash> HKDF_UpdateSecret(secret<Hash> secret) {
 }
 
 template <typename Hash>
-s2::vector<uint8_t> exporter_master(secret<Hash>& h, s2::vector<uint8_t> hash) {
+std::vector<uint8_t> exporter_master(secret<Hash>& h, std::vector<uint8_t> hash) {
   return HKDF_Expand_Label(h.data, "exp master", hash, 32);
 }
 
 template <typename Hash>
-s2::vector<uint8_t> resumption_master(secret<Hash>& h, s2::vector<uint8_t> hash) {
+std::vector<uint8_t> resumption_master(secret<Hash>& h, std::vector<uint8_t> hash) {
   return HKDF_Expand_Label(h.data, "res master", hash, 32);
 }
 

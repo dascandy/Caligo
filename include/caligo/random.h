@@ -2,7 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <s2/span>
+#include <span>
 
 inline uint64_t generate_random_value() {
   // LCG, using only the major 32 bits to have high enough entropy in those. Still a PRNG.
@@ -24,7 +24,7 @@ inline uint64_t generate_random_value() {
   return rv;
 }
 
-inline void generate_random(s2::span<uint8_t> target) {
+inline void generate_random(std::span<uint8_t> target) {
   for (size_t n = 0; n < target.size(); n += 8) {
     uint64_t value = generate_random_value();
     for (size_t i = 0; i < 8; i++) {

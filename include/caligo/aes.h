@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <s2/span>
+#include <span>
 #ifdef __x86_64__
 #include <x86intrin.h>
 #endif
@@ -13,7 +13,7 @@ __m128i AesEncrypt(const AesKeySchedule<bits>& key, __m128i block);
 template <size_t bits>
 class AesKeySchedule {
 public:
-  explicit AesKeySchedule(const s2::span<uint8_t>& key);
+  explicit AesKeySchedule(const std::span<uint8_t>& key);
 private:
   static constexpr size_t rounds = 6 + bits / 32;
   __m128i eroundKeys[rounds + 1];

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <s2/span>
-#include <s2/pair>
+#include <span>
+#include <pair>
 #include <cstdint>
 #include <cstddef>
 
@@ -21,9 +21,9 @@ enum class asn1_id {
 };
 
 struct asn1_view {
-  s2::span<uint8_t> data;
+  std::span<uint8_t> data;
   size_t offset = 0;
-  s2::pair<asn1_id, s2::span<uint8_t>> read() {
+  std::pair<asn1_id, std::span<uint8_t>> read() {
     asn1_id id = data[offset++];
     size_t size = data[offset++];
     if (size & 0x80) {
@@ -35,7 +35,7 @@ struct asn1_view {
     }
     size_t off = offset;
     offset += size;
-    return { id, s2::span(data.data() + off, data.data() + off + size) };
+    return { id, std::span(data.data() + off, data.data() + off + size) };
   }
   bool atEnd() {
     return offset == data.size();
