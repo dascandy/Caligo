@@ -4,6 +4,7 @@
 #include <span>
 #include <vector>
 #include <string>
+#include <iostream>
 
 template <size_t N>
 struct bignum {
@@ -33,14 +34,14 @@ struct bignum {
   {
     size_t n = 0;
     for (auto i : list) {
-      v[n++] = i;
+      v[list.size() - n++ - 1] = i;
     }
   }
   constexpr bignum(std::span<const uint32_t> data) 
   : v{}
   {
     for (size_t i = 0; i < N; i++) {
-      v[i] = data[i];
+      v[N - i - 1] = data[i];
     }
   }
   constexpr bignum(std::span<const uint8_t> data) 
@@ -51,8 +52,48 @@ struct bignum {
       }
   }
   template <size_t K>
+  constexpr bignum(const bignum<K>& value) 
+  : v{}
+  {
+      for (size_t n = 0; n < std::min(K, N); n++) {
+          v[n] = value.v[n];
+      }
+  }
+  constexpr void shl_word(size_t words) {
+      for (size_t n = 0; n < N-words; n++) {
+          v[N - n - 1] = v[N - n - words - 1];
+      }
+      for (size_t n = N-words; n < N; n++) {
+          v[N - n - 1] = 0;
+      }
+  }
+  constexpr void shr1() {
+    uint32_t bit = 0;
+    for (size_t n = 0; n < N; n++) {
+      uint32_t nb = v[N-1-n] << 31;
+      v[N-1-n] = (v[N-1-n] >> 1) | bit;
+      bit = nb;
+    }
+  }
+  template <size_t K>
+  constexpr bignum<K> naive_reduce(bignum<K>& p) {
+    bignum<N> s = p;
+    bignum<N> c = *this;
+    s.shl_word(N-K);
+    for (size_t n = N * 32; n > K * 32; n--) {
+      s.shr1();
+      auto [overflow, c2] = c - s;
+      c = (overflow ? c : c2);
+    }
+    return c;
+  }
+  template <size_t K>
   constexpr bignum<K> slice(size_t start) {
-    return bignum<K>(std::span<uint32_t>(v+start, v+start+K));
+    bignum<K> rv;
+    for (size_t n = 0; n < K; n++) {
+      rv.v[n] = v[n+start];
+    }
+    return rv;
   }
   std::vector<uint8_t> as_bytes() const {
     std::vector<uint8_t> bytes;
@@ -63,6 +104,11 @@ struct bignum {
       bytes.push_back((v[i] >> 24) & 0xFF);
     }
     return bytes;
+  }
+  void neg() {
+    for (auto& e : v) {
+      e ^= 0xFFFFFFFF;
+    }
   }
   friend constexpr bignum operator^(const bignum& a, const bignum& b)
   {
@@ -164,10 +210,16 @@ struct bignum {
     char buffer[10*N];
     buffer[0] = '\0';
     for (size_t n = 0; n < N; n++) {
-      sprintf(buffer + strlen(buffer), "%08X ", x.v[n]);
+      sprintf(buffer + strlen(buffer), "%08X ", x.v[N-n-1]);
     }
     buffer[strlen(buffer)-1] = 0;
     return buffer;
   }
 };
+
+template <size_t N>
+std::ostream& operator<<(std::ostream& os, const bignum<N>& bn) {
+  os << to_string(bn);
+  return os;
+}
 

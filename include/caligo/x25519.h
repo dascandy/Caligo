@@ -7,7 +7,7 @@
 #include "caligo/bignum.h"
 
 struct ec_value {
-  static constexpr bignum<8> modulus = { 0xFFFFFFED, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x7FFFFFFF };
+  static constexpr bignum<8> modulus = { 0x7FFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFED };
   static constexpr bignum<8> zero = { 0,0,0,0,0,0,0,0 };
   static constexpr uint32_t overflow_addition = 38;
   void wipe() {
@@ -34,7 +34,7 @@ struct ec_value {
   {
     bignum<9> x = a.v * b;
     uint64_t ov = (uint64_t)x[8] * 38;
-    return ec_value(x.slice<8>(0)) + ec_value({uint32_t(ov & 0xFFFFFFFF), uint32_t(ov >> 32)});
+    return ec_value(x.slice<8>(0)) + ec_value({uint32_t(ov >> 32), uint32_t(ov & 0xFFFFFFFF)});
   }
   friend ec_value operator*(const ec_value& a, const ec_value& b)
   {
@@ -84,33 +84,7 @@ struct ec_value {
   }
   // Fast method should be about 40% faster. Uses only 36 multiplications instead of 64
   ec_value square() const {
-#ifndef FAST_SQUARE
     return *this * *this;
-#else
-    uint32_t x[16] = {};
-    for (size_t i = 0; i < 8; i++) {
-      uint64_t t = 0;
-      for (size_t j = 0; j < i; j++) {
-        t += (uint64_t)v[i] * v[j] * 2 + x[i+j];
-        x[i+j] = (uint32_t)(t & 0xFFFFFFFF);
-        t >>= 32;
-      }
-      t += (uint64_t)v[i] * v[i] + x[i+i];
-      x[i+i] = (uint32_t)(t & 0xFFFFFFFF);
-      t >>= 32;
-      x[i+i+1] = (uint32_t)(t & 0xFFFFFFFF);
-    }
-    ec_value upper(std::span<uint32_t>(x+8, x+16));
-    ec_value lower(std::span<uint32_t>(x, x+8));
-    // add upper 38x to lower
-    ec_value upper2 = upper + upper;
-    ec_value upper4 = upper2 + upper2;
-    ec_value upper8 = upper4 + upper4;
-    ec_value upper16 = upper8 + upper8;
-    ec_value upper32 = upper16 + upper16;
-    ec_value upper38 = upper32 + upper4 + upper2;
-    return lower + upper38;
-#endif
   }
   friend ec_value inverse(const ec_value& z)
   {
@@ -131,15 +105,18 @@ struct ec_value {
     return z2_240_0.square().square().square().square().square().square().square().square().square().square().square().square().square().square().square() * z2_15_5 * z11;
   }
   friend std::string to_string(const ec_value& x) {
-    char buffer[80];
-    sprintf(buffer, "%08X %08X %08X %08X %08X %08X %08X %08X", x.v[0], x.v[1], x.v[2], x.v[3], x.v[4], x.v[5], x.v[6], x.v[7]);
-    return buffer;
+    return to_string(x.v);
   }
   static ec_value random() {
     uint32_t values[] = {(uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand()};
     return bignum<8>{values};
   }
 };
+
+std::ostream& operator<<(std::ostream& os, const ec_value& e) {
+  os << e.v;
+  return os;
+}
 
 inline ec_value X25519(ec_value k, ec_value u) {
    k.normalize();
@@ -156,7 +133,6 @@ inline ec_value X25519(ec_value k, ec_value u) {
        ctime_swap(swap, x_2, x_3);
        ctime_swap(swap, z_2, z_3);
        swap = k_t;
-
        ec_value A = x_2 + z_2;
        ec_value AA = A.square();
        ec_value B = x_2 - z_2;
