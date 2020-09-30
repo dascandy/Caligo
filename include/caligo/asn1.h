@@ -1,7 +1,7 @@
 #pragma once
 
 #include <span>
-#include <pair>
+#include <utility>
 #include <cstdint>
 #include <cstddef>
 
@@ -24,7 +24,8 @@ struct asn1_view {
   std::span<uint8_t> data;
   size_t offset = 0;
   std::pair<asn1_id, std::span<uint8_t>> read() {
-    asn1_id id = data[offset++];
+  
+    asn1_id id = (asn1_id)data[offset++];
     size_t size = data[offset++];
     if (size & 0x80) {
       size_t bytes = size & 0x7F;

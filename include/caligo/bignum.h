@@ -181,6 +181,10 @@ struct bignum {
     }
     return x;
   }
+  bignum<2*N> square() const {
+    // TODO: optimize this
+    return *this * *this;
+  }
   friend constexpr std::pair<bool, bignum> operator-(const bignum& a, const bignum& b)
   {
     bignum v = a;

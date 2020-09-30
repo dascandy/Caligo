@@ -113,7 +113,7 @@ struct ec_value {
   }
 };
 
-std::ostream& operator<<(std::ostream& os, const ec_value& e) {
+inline std::ostream& operator<<(std::ostream& os, const ec_value& e) {
   os << e.v;
   return os;
 }

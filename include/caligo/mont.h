@@ -50,35 +50,44 @@ struct MontgomeryState {
 
 template <size_t K>
 struct MontgomeryValue {
-  MontgomeryState<K>& state;
+  MontgomeryState<K>* state;
   bignum<K> value;
   MontgomeryValue(MontgomeryState<K>& state, const bignum<K>& in) 
-  : state(state)
+  : state(&state)
   {
     value = state.REDC(in * state.R2MN);
   }
-  /*
-  MontgomeryValue inverse() const {
-   //The modular inverse of aR mod N is REDC((aR mod N)−1(R3 mod N)).
-   // How to get (aR mod N) ^ -1 ?
-   bignum<K> invvalue = value;
-   return state.REDC(invvalue * state.R3MN);
-  }
-  */
   MontgomeryValue operator+(const MontgomeryValue& rhs) const {
-    MontgomeryValue rv(state, 0);
-    for (size_t n = 0; n < K; n++) {
-      uint64_t v = value[n] + rhs.value[n];
-      rv.value[n] = (uint32_t)v;
-      v >>= 32;
-    }
+    MontgomeryValue rv(state);
+    rv.value = (value + rhs.value).second;
     return rv;
   }
   MontgomeryValue operator*(const MontgomeryValue& rhs) const {
-    return state.REDC(rhs.value * value);
+    MontgomeryValue rv(state);
+    rv.value = state->REDC(rhs.value * value);
+    return rv;
+  }
+  MontgomeryValue square() const {
+    MontgomeryValue rv(state);
+    rv.value = state->REDC(value.square());
+    return rv;
+  }
+  MontgomeryValue exp(bignum<K> exponent) const {
+    MontgomeryValue b = *this;
+    MontgomeryValue<K> v(*state, 1);
+    MontgomeryValue<K> one = v;
+    for (size_t n = 0; n < 32*K; n++) {
+      v = v * (exponent.bit(n) ? b : one);
+      b = b.square();
+    }
+    return v;
   }
   operator bignum<K>() {
-    return state.REDC(value);
+    return state->REDC(value);
   }
+private:
+  MontgomeryValue(MontgomeryState<K>* state)
+  : state(state)
+  {}
 };
 

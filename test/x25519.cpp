@@ -132,10 +132,6 @@ TEST_CASE("equality comparison works", "[X25519]") {
   CHECK(!(a == b));
 }
 
-TEST_CASE("That one multiplication that fails", "[X25519]") {
-}
-
-
 TEST_CASE("Comparison works", "[X25519]") {
   ec_value a = { 0xd0ab1c4c, 0x10a903a6, 0x26b3353b, 0x726624ec, 0x24b15f7c, 0x3594c1a4, 0x583030db, 0xe6db6867 };
   ec_value b = { 1 };
