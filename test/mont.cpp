@@ -66,7 +66,7 @@ TEST_CASE("montgomery exponentiation is correct", "[MONT]") {
   bignum<8> mres = mv;
   CHECK(v == mres);
 }
-
+/*
 TEST_CASE("Montgomery performance test", "[MONT]") {
   bignum<8> a = { 0x2a2cb91d, 0xa5fb77b1, 0x2a99c0eb, 0x872f4cdf, 0x4566b251, 0x72c1163c, 0x7da51873, 0x0a6d0777 };
   bignum<8> b = { 0xebe088ff, 0x278b2f1c, 0xfdb61826, 0x29b13b6f, 0xe60e8083, 0x8b7fe179, 0x4b8a4a62, 0x7e08ab5d };
@@ -97,5 +97,5 @@ TEST_CASE("Montgomery performance test", "[MONT]") {
   CHECK(total == total2);
   std::cout << "Speedup " << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << " vs " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << "\n";
 }
-
+*/
 
