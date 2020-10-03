@@ -7,42 +7,42 @@
 #include "caligo/bignum.h"
 
 struct ec_value {
-  static constexpr bignum<8> modulus = { 0x7FFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFED };
-  static constexpr bignum<8> zero = { 0,0,0,0,0,0,0,0 };
+  static constexpr bignum<256> modulus = { 0x7FFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFED };
+  static constexpr bignum<256> zero = { 0,0,0,0,0,0,0,0 };
   static constexpr uint32_t overflow_addition = 38;
   void wipe() {
     memset((char*)&v.v, 0, 32);
   }
-  bignum<8> v;
+  bignum<256> v;
   int bit(size_t n) const { return v.bit(n); }
   ec_value& operator=(uint32_t value) { v = value; return *this; }
   bool operator!=(const ec_value& rhs) { return !(v == rhs.v); }
   constexpr ec_value(std::initializer_list<uint32_t> nv) 
   : v(nv) {}
-  constexpr ec_value(bignum<8> nv) 
+  constexpr ec_value(bignum<256> nv) 
   : v(nv) {}
   std::vector<uint8_t> as_bytes() const { return v.as_bytes(); }
   friend ec_value operator+(const ec_value& a, const ec_value& b)
   {
     auto [overflow, value] = a.v + b.v;
-    auto [ov2, v2] = value + bignum<8>(overflow * overflow_addition);
-    bignum<8> v = v2;
+    auto [ov2, v2] = value + bignum<256>(overflow * overflow_addition);
+    bignum<256> v = v2;
     v.v[0] += ov2 * overflow_addition;
     return v;
   }
   friend ec_value operator*(const ec_value& a, uint32_t b)
   {
-    bignum<9> x = a.v * b;
-    uint64_t ov = (uint64_t)x[8] * 38;
-    return ec_value(x.slice<8>(0)) + ec_value({uint32_t(ov >> 32), uint32_t(ov & 0xFFFFFFFF)});
+    bignum<288> x = a.v * b;
+    uint64_t ov = (uint64_t)x[8] * 38; // TODO: find out how to do this non-32-bit assuming
+    return ec_value(x.slice<256>(0)) + ec_value({uint32_t(ov >> 32), uint32_t(ov & 0xFFFFFFFF)});
   }
   friend ec_value operator*(const ec_value& a, const ec_value& b)
   {
-    bignum<16> x = a.v * b.v;
-    bignum<8> upper = x.slice<8>(8);
-    bignum<8> lower = x.slice<8>(0);
-    bignum<9> u38 = upper * 38;
-    return ec_value(u38.slice<8>(0)) + ec_value(lower) + ec_value(u38.v[8] * 38);
+    bignum<512> x = a.v * b.v;
+    bignum<256> upper = x.slice<256>(256);
+    bignum<256> lower = x.slice<256>(0);
+    bignum<288> u38 = upper * 38;
+    return ec_value(u38.slice<256>(0)) + ec_value(lower) + ec_value(u38.v[8] * 38);
   }
   friend ec_value operator-(const ec_value& a, const ec_value& b)
   {
@@ -75,9 +75,12 @@ struct ec_value {
     v = nv4;
   }
   void normalize() {
-    v[0] &= 0xfffffff8;
-    v[7] |= 0x40000000;
-    v[7] &= 0x7fffffff;
+    // TODO: replace with bit-set and bit-clear
+    v.clear_bit(0);
+    v.clear_bit(1);
+    v.clear_bit(2);
+    v.set_bit(254);
+    v.clear_bit(255);
   }
   friend void ctime_swap(bool doswap, ec_value& a, ec_value& b) {
     ctime_swap(doswap, a.v, b.v);
@@ -108,8 +111,7 @@ struct ec_value {
     return to_string(x.v);
   }
   static ec_value random() {
-    uint32_t values[] = {(uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand(), (uint32_t)rand()};
-    return bignum<8>{values};
+    return {bignum<256>::random()};
   }
 };
 

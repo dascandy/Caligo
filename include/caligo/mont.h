@@ -3,7 +3,7 @@
 
 template <size_t N>
 inline auto RecursiveInverseModPower2(bignum<N> A) {
-  if constexpr (N > 1) {
+  if constexpr (bignum<N>::multiword) {
     bignum<N> r = RecursiveInverseModPower2(A.template slice<(N+1)/2>(0));
     bignum<N> rv = r * (2 - (r * A).template slice<N>(0)).second;
     return rv;
@@ -14,7 +14,7 @@ inline auto RecursiveInverseModPower2(bignum<N> A) {
       r = r*(2-r*A.v[0]);            // 2->4->8->16->32, so 4 runs
     }
 
-    return bignum<1>(r);
+    return bignum<N>(r);
   }
 }
 
@@ -33,7 +33,7 @@ struct MontgomeryState {
     Ninv = (Ninv + bignum<K>(1)).second;
 
     bignum<2*K+1> R;
-    R.v[2*K] = 1;
+    R.set_bit(2*K);
     R2MN = R.naive_reduce(N);
 
     R1MN = REDC(R2MN);
@@ -72,6 +72,7 @@ struct MontgomeryValue {
   }
   MontgomeryValue operator*(const MontgomeryValue& rhs) const {
     MontgomeryValue rv(state);
+    std::cout << to_string(rhs.value) << " // " << to_string(value) << " // " << to_string(rhs.value * value) << "\n";
     rv.value = state->REDC(rhs.value * value);
     return rv;
   }

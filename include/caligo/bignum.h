@@ -5,10 +5,13 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <caligo/random.h>
 
-template <size_t N>
+template <size_t Bits>
 struct bignum {
+  static constexpr size_t N = (Bits + 31) / 32;
   uint32_t v[N];
+  static constexpr bool multiword = (N > 1);
   constexpr const uint32_t& operator[](size_t index) const {
     return v[index];
   }
@@ -17,6 +20,12 @@ struct bignum {
   }
   constexpr int bit(size_t n) const {
     return (v[n / 32] >> (n % 32)) & 1;
+  }
+  constexpr void set_bit(size_t n) {
+    v[n/32] |= (1 << (n%32));
+  }
+  constexpr void clear_bit(size_t n) {
+    v[n/32] &= ~(1UL << (n%32));
   }
   constexpr bignum& operator=(uint32_t value) {
       memset(v, 0, sizeof(v));
@@ -55,8 +64,12 @@ struct bignum {
   constexpr bignum(const bignum<K>& value) 
   : v{}
   {
-      for (size_t n = 0; n < std::min(K, N); n++) {
+      size_t n;
+      for (n = 0; n < std::min(K, Bits)/32; n++) {
           v[n] = value.v[n];
+      }
+      for (; n < N; n++) {
+          v[n] = 0;
       }
   }
   constexpr void shl_word(size_t words) {
@@ -77,10 +90,10 @@ struct bignum {
   }
   template <size_t K>
   constexpr bignum<K> naive_reduce(bignum<K>& p) {
-    bignum<N> s = p;
-    bignum<N> c = *this;
-    s.shl_word(N-K);
-    for (size_t n = N * 32; n > K * 32; n--) {
+    bignum<Bits> s = p;
+    bignum<Bits> c = *this;
+    s.shl_word((Bits-K + 31) / 32);
+    for (size_t n = ((Bits + 31) / 32) * 32; n > K; n--) {
       s.shr1();
       auto [overflow, c2] = c - s;
       c = (overflow ? c : c2);
@@ -90,8 +103,8 @@ struct bignum {
   template <size_t K>
   constexpr bignum<K> slice(size_t start) {
     bignum<K> rv;
-    for (size_t n = 0; n < K; n++) {
-      rv.v[n] = v[n+start];
+    for (size_t n = 0; n < K/32; n++) {
+      rv.v[n] = v[n+start/32];
     }
     return rv;
   }
@@ -155,9 +168,9 @@ struct bignum {
     return {overflow, v};
   }
   // Common enough operation
-  friend constexpr bignum<N+1> operator*(const bignum& a, uint32_t b)
+  friend constexpr bignum<Bits+32> operator*(const bignum& a, uint32_t b)
   {
-    bignum<N+1> x;
+    bignum<Bits+32> x;
     uint64_t t = 0;
     for (size_t i = 0; i < N; i++) {
       t += (uint64_t)a.v[i] * b;
@@ -167,9 +180,9 @@ struct bignum {
     x.v[N] = (uint32_t)(t & 0xFFFFFFFF);
     return x;
   }
-  friend constexpr bignum<2*N> operator*(const bignum& a, const bignum& b)
+  friend constexpr bignum<2*Bits> operator*(const bignum& a, const bignum& b)
   {
-    bignum<2*N> x;
+    bignum<2*Bits> x;
     for (size_t i = 0; i < N; i++) {
       uint64_t t = 0;
       for (size_t j = 0; j < N; j++) {
@@ -181,7 +194,7 @@ struct bignum {
     }
     return x;
   }
-  bignum<2*N> square() const {
+  bignum<2*Bits> square() const {
     // TODO: optimize this
     return *this * *this;
   }
@@ -218,6 +231,11 @@ struct bignum {
     }
     buffer[strlen(buffer)-1] = 0;
     return buffer;
+  }
+  static bignum<N> random() {
+    bignum<N> n;
+    generate_random(std::span<uint32_t>(n.v));
+    return n;
   }
 };
 
