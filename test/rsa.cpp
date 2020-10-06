@@ -1,5 +1,5 @@
-#include "catch.hpp"
-#include "rsa.h"
+#include <caligo/rsa.h>
+#include <catch/catch.hpp>
 
 TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
   bignum<32> p = 63863;
