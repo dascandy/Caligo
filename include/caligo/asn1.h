@@ -17,12 +17,19 @@ enum class asn1_id {
   utctime = 23,
   sequence = 48,
   set = 49,
-  cons = 160
+  array0 = 160,
+  array1 = 161,
+  array2 = 162,
+  array3 = 163,
+  array4 = 164
 };
 
 struct asn1_view {
   std::span<uint8_t> data;
   size_t offset = 0;
+  asn1_view(std::span<uint8_t> data) 
+  : data(data)
+  {}
   std::pair<asn1_id, std::span<uint8_t>> read() {
   
     asn1_id id = (asn1_id)data[offset++];
@@ -30,15 +37,15 @@ struct asn1_view {
     if (size & 0x80) {
       size_t bytes = size & 0x7F;
       size = 0;
-      for (; bytes > 0; bytes--) {
-        size = (size << 8) + data[offset];
+      for (; bytes --> 0;) {
+        size = (size << 8) + data[offset++];
       }
     }
     size_t off = offset;
     offset += size;
     return { id, std::span(data.data() + off, data.data() + off + size) };
   }
-  bool atEnd() {
+  bool empty() {
     return offset == data.size();
   }
 };
