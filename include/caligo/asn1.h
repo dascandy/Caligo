@@ -5,6 +5,17 @@
 #include <cstdint>
 #include <cstddef>
 
+struct object_id {
+  object_id(std::span<const uint8_t> s)
+  : data(s.data(), s.size())
+  {
+  }
+  friend bool operator==(std::span<const uint8_t> rhs, const object_id& id) {
+    return id.data == rhs;
+  }
+  std::vector<uint8_t> data;
+};
+
 enum class asn1_id {
   boolean = 1,
   integer = 2,
@@ -25,13 +36,12 @@ enum class asn1_id {
 };
 
 struct asn1_view {
-  std::span<uint8_t> data;
+  std::span<const uint8_t> data;
   size_t offset = 0;
   asn1_view(std::span<uint8_t> data) 
   : data(data)
   {}
   std::pair<asn1_id, std::span<uint8_t>> read() {
-  
     asn1_id id = (asn1_id)data[offset++];
     size_t size = data[offset++];
     if (size & 0x80) {
