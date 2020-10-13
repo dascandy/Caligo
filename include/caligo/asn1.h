@@ -15,6 +15,7 @@ enum class asn1_id {
   utf8string = 12,
   printablestring = 19,
   utctime = 23,
+  generalizedtime = 24,
   sequence = 48,
   set = 49,
   array0 = 160,
