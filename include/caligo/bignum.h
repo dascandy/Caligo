@@ -56,9 +56,9 @@ struct bignum {
   constexpr bignum(std::span<const uint8_t> data) 
   : v{}
   {
-      for (size_t i = 0; i < N; i++) {
-          v[i] = (data[i*4+0]) + (data[i*4+1] << 8) + (data[i*4+2] << 16) + (data[i*4+3] << 24);
-      }
+    for (size_t n = 0; n < data.size() && n < N*4; n++) {
+      v[n/4] |= (data[n] << ((8*n) % 32));
+    }
   }
   template <size_t K>
   constexpr bignum(const bignum<K>& value) 

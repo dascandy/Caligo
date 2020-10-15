@@ -40,17 +40,17 @@ struct MontgomeryState {
     R3MN = REDC(R2MN * R2MN);
   }
   bignum<K> REDC(bignum<2*K> v) {
-    std::cout << "V   " << v << "\n";
+//    std::cout << "V   " << v << "\n";
     bignum<K> m = (v.template slice<K>(0) * Ninv).template slice<K>(0);
-    std::cout << "M   " << m << "\n";
+//    std::cout << "M   " << m << "\n";
     auto mn = m * N;
-    std::cout << "MN  " << mn << "\n";
+//    std::cout << "MN  " << mn << "\n";
     auto vmn = v + mn;
-    std::cout << vmn.first << " / " << vmn.second << "\n";
+//    std::cout << vmn.first << " / " << vmn.second << "\n";
     bignum<K> t = vmn.second.template slice<K>(K);
-    std::cout << "T   " << t << "\n";
+//    std::cout << "T   " << t << "\n";
     auto [carry, t2] = t - N;
-    std::cout << "T2  " << t2 << "\n";
+//    std::cout << "T2  " << t2 << "\n";
     return carry ? t : t2;
   }
 };

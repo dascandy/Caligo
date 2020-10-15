@@ -1,7 +1,6 @@
 #pragma once
 
 #include <caligo/bignum.h>
-#include <caligo/asn1.h>
 #include <caligo/mont.h>
 
 template <size_t N = 2048>
@@ -34,9 +33,9 @@ bignum<N> rsaep(rsa_public_key<N> key, bignum<N> m) {
   bignum<N> z = m;
   for (size_t x = 0; x < N; x++) {
     if (key.e.bit(x)) accum = (accum * z).naive_reduce(key.n);
-    std::cout << "E " << to_string(accum) << "\n";
+//    std::cout << "E " << to_string(accum) << "\n";
     z = (z * z).naive_reduce(key.n);
-    std::cout << "E " << to_string(z) << "\n";
+//    std::cout << "E " << to_string(z) << "\n";
   }
   return accum;
 #endif
@@ -51,9 +50,9 @@ bignum<N> rsadp(rsa_private_key<N> key, bignum<N> m) {
   bignum<N> z = m;
   for (size_t x = 0; x < N; x++) {
     if (key.d.bit(x)) accum = (accum * z).naive_reduce(key.n);
-    std::cout << "D " << to_string(accum) << "\n";
+//    std::cout << "D " << to_string(accum) << "\n";
     z = (z * z).naive_reduce(key.n);
-    std::cout << "D " << to_string(z) << "\n";
+//    std::cout << "D " << to_string(z) << "\n";
   }
   return accum;
 #endif
