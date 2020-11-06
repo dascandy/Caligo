@@ -1,7 +1,7 @@
 #include "caligo/sha2.h"
 #include <cstdio>
 
-SHA256::SHA256() {
+SHA<256>::SHA() {
   w[0] = 0x6a09e667;
   w[1] = 0xbb67ae85;
   w[2] = 0x3c6ef372;
@@ -12,7 +12,7 @@ SHA256::SHA256() {
   w[7] = 0x5be0cd19;
 }
 
-void SHA256::add(std::span<const uint8_t> data) {
+void SHA<256>::add(std::span<const uint8_t> data) {
   size_t offset = msglength % (2*hashsize);
   size_t inoffset = 0;
   msglength += data.size();
@@ -51,7 +51,7 @@ static const uint32_t K_256[64] = {
   0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 };
 
-void SHA256::processChunk() {
+void SHA<256>::processChunk() {
   uint32_t W[64];
   for (size_t t = 0; t < 16; t++) {
     W[t] = ((uint32_t)chunk[t*4] << 24) + (chunk[t*4+1] << 16) + (chunk[t*4+2] << 8) + (chunk[t*4+3]);
@@ -83,7 +83,7 @@ void SHA256::processChunk() {
   w[7] += h;
 }
 
-SHA256::operator std::vector<uint8_t>() const {
+SHA<256>::operator std::vector<uint8_t>() const {
   auto copy = *this;
   uint64_t padsize = 2*hashsize - ((msglength + 8) % (2*hashsize));
   uint8_t zeroes[2*hashsize+1] = {0x80};
@@ -105,7 +105,7 @@ SHA256::operator std::vector<uint8_t>() const {
   return output;
 }
 
-SHA512::SHA512() {
+SHA<512>::SHA() {
   w[0] = 0x6a09e667f3bcc908;
   w[1] = 0xbb67ae8584caa73b;
   w[2] = 0x3c6ef372fe94f82b;
@@ -116,7 +116,7 @@ SHA512::SHA512() {
   w[7] = 0x5be0cd19137e2179;
 }
 
-void SHA512::add(std::span<const uint8_t> data) {
+void SHA<512>::add(std::span<const uint8_t> data) {
   size_t offset = msglength % (2*hashsize);
   size_t inoffset = 0;
   msglength += data.size();
@@ -144,7 +144,7 @@ static uint64_t rotr64(uint64_t v, size_t count) {
   return (v >> count) | (v << (64 - count));
 }
 
-void SHA512::processChunk() {
+void SHA<512>::processChunk() {
   static const uint64_t K_512[80] = {
     0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc,
     0x3956c25bf348b538, 0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118,
@@ -205,7 +205,7 @@ void SHA512::processChunk() {
   w[7] += h;
 }
 
-SHA512::operator std::vector<uint8_t>() const {
+SHA<512>::operator std::vector<uint8_t>() const {
   auto copy = *this;
   uint64_t padsize = 2*hashsize - ((msglength + 16) % (2*hashsize));
   uint8_t zeroes[2*hashsize+1] = {0x80};
@@ -227,7 +227,7 @@ SHA512::operator std::vector<uint8_t>() const {
   return output;
 }
 
-void SHA384::sha384_override() {
+void SHA<384>::sha384_override() {
   w[0] = 0xcbbb9d5dc1059ed8;
   w[1] = 0x629a292a367cd507;
   w[2] = 0x9159015a3070dd17;

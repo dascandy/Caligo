@@ -5,17 +5,20 @@
 #include <vector>
 #include <span>
 
-struct SHA256 {
+template <size_t bits>
+struct SHA;
+template <>
+struct SHA<256> {
   static constexpr size_t hashsize = 32;
-  SHA256();
-  inline SHA256(std::span<const uint8_t> data)
-  : SHA256()
+  SHA();
+  inline SHA(std::span<const uint8_t> data)
+  : SHA()
   {
     add(data);
   }
   void add(std::span<const uint8_t> data);
   operator std::vector<uint8_t>() const;
-  inline std::span<const uint8_t> getAsn1Id() {
+  static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20 };
   }
 private:
@@ -25,17 +28,18 @@ private:
   size_t msglength = 0;
 };
 
-struct SHA512 {
+template <>
+struct SHA<512> {
   static constexpr size_t hashsize = 64;
-  SHA512();
-  inline SHA512(std::span<const uint8_t> data)
-  : SHA512()
+  SHA();
+  inline SHA(std::span<const uint8_t> data)
+  : SHA()
   {
     add(data);
   }
   void add(std::span<const uint8_t> data);
   operator std::vector<uint8_t>() const; 
-  inline std::span<const uint8_t> getAsn1Id() {
+  static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x51, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05, 0x00, 0x04, 0x40 };
   }
 protected:
@@ -45,24 +49,26 @@ protected:
   size_t msglength = 0;
 };
 
-struct SHA384 : SHA512 {
+template <>
+struct SHA<384> : private SHA<512> {
   static constexpr size_t hashsize = 48;
-  inline SHA384() {
+  inline SHA() {
     sha384_override();
   }
-  inline SHA384(std::span<const uint8_t> data)
-  : SHA512()
+  inline SHA(std::span<const uint8_t> data)
+  : SHA<512>()
   {
     sha384_override();
     add(data);
   }
   void sha384_override();
   inline operator std::vector<uint8_t>() const {
-    std::vector<uint8_t> hash = *((SHA512*)this);
+    std::vector<uint8_t> hash = *((SHA<512>*)this);
     hash.resize(hashsize);
     return hash;
   }
-  inline std::span<const uint8_t> getAsn1Id() {
+  using SHA<512>::add;
+  static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x41, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x02, 0x05, 0x00, 0x04, 0x30 };
   }
 };
