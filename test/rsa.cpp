@@ -1,4 +1,5 @@
 #include <caligo/rsa.h>
+#include <caligo/sha.h>
 #include <catch/catch.hpp>
 
 TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
@@ -15,18 +16,18 @@ TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
   bignum<32> z = pt;
   for (size_t x = 0; x < 32; x++) {
     if (e.bit(x)) accum = (accum * z).naive_reduce(n);
-    std::cout << "E " << to_string(accum) << "\n";
+//    std::cout << "E " << to_string(accum) << "\n";
     z = (z * z).naive_reduce(n);
-    std::cout << "E " << to_string(z) << "\n";
+//    std::cout << "E " << to_string(z) << "\n";
   }
   bignum<32> ct = accum;
   accum = 1;
   z = ct;
   for (size_t x = 0; x < 32; x++) {
     if (d.bit(x)) accum = (accum * z).naive_reduce(n);
-    std::cout << "D " << to_string(accum) << "\n";
+//    std::cout << "D " << to_string(accum) << "\n";
     z = (z * z).naive_reduce(n);
-    std::cout << "D " << to_string(z) << "\n";
+//    std::cout << "D " << to_string(z) << "\n";
   }
   bignum<32> pt2 = accum;
 
@@ -37,6 +38,7 @@ TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
   auto npt = rsadp(key, ct2);
   REQUIRE(pt == npt);
 }
+
 /*
 TEST_CASE("RSA 1024 bit encrypt/decrypt", "[RSA]") {
   bignum<1024> n = { 

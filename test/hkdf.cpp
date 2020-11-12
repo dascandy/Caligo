@@ -1,6 +1,6 @@
 #include <catch/catch.hpp>
 #include <caligo/hkdf.h>
-#include <caligo/sha2.h>
+#include <caligo/sha.h>
 
 struct MyCipher {
   static constexpr size_t size = 16;

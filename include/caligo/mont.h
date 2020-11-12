@@ -72,7 +72,7 @@ struct MontgomeryValue {
   }
   MontgomeryValue operator*(const MontgomeryValue& rhs) const {
     MontgomeryValue rv(state);
-    std::cout << to_string(rhs.value) << " // " << to_string(value) << " // " << to_string(rhs.value * value) << "\n";
+//    std::cout << to_string(rhs.value) << " // " << to_string(value) << " // " << to_string(rhs.value * value) << "\n";
     rv.value = state->REDC(rhs.value * value);
     return rv;
   }
