@@ -31,11 +31,18 @@ bignum<N> rsaep(rsa_public_key<N> key, bignum<N> m) {
 #else
   bignum<N> accum = 1;
   bignum<N> z = m;
-  for (size_t x = 0; x < N; x++) {
-    if (key.e.bit(x)) accum = (accum * z).naive_reduce(key.n);
-//    std::cout << "E " << to_string(accum) << "\n";
-    z = (z * z).naive_reduce(key.n);
-//    std::cout << "E " << to_string(z) << "\n";
+  if (key.e == bignum<N>(65537)) {
+    for (size_t x = 0; x < 16; x++) {
+      z = (z * z).naive_reduce(key.n);
+    }
+    accum = (z * m).naive_reduce(key.n);
+  } else {
+    for (size_t x = 0; x < N; x++) {
+      if (key.e.bit(x)) accum = (accum * z).naive_reduce(key.n);
+  //    std::cout << "E " << to_string(accum) << "\n";
+      z = (z * z).naive_reduce(key.n);
+  //    std::cout << "E " << to_string(z) << "\n";
+    }
   }
   return accum;
 #endif
