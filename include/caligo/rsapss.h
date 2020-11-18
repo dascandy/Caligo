@@ -12,6 +12,7 @@ namespace Caligo {
 //               the hash function output)
 template <typename Hash = SHA<1>>
 struct MGF1 {
+  static constexpr size_t hashsize = Hash::hashsize;
   static std::vector<uint8_t> MGF(std::vector<uint8_t> seed, size_t length) {
     // 1.  If maskLen > 2^32 hLen, output "mask too long" and stop.
     if (length > 0x100000000ULL) return {};
