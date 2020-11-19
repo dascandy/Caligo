@@ -16,18 +16,14 @@ TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
   bignum<32> z = pt;
   for (size_t x = 0; x < 32; x++) {
     if (e.bit(x)) accum = (accum * z).naive_reduce(n);
-//    std::cout << "E " << to_string(accum) << "\n";
     z = (z * z).naive_reduce(n);
-//    std::cout << "E " << to_string(z) << "\n";
   }
   bignum<32> ct = accum;
   accum = 1;
   z = ct;
   for (size_t x = 0; x < 32; x++) {
     if (d.bit(x)) accum = (accum * z).naive_reduce(n);
-//    std::cout << "D " << to_string(accum) << "\n";
     z = (z * z).naive_reduce(n);
-//    std::cout << "D " << to_string(z) << "\n";
   }
   bignum<32> pt2 = accum;
 
@@ -36,10 +32,10 @@ TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
   rsa_private_key<32> key(n, e, d);
   auto ct2 = rsaep(key, pt);
   auto npt = rsadp(key, ct2);
-  REQUIRE(pt == npt);
+  CHECK(ct == ct2);
+  CHECK(pt == npt);
 }
 
-/*
 TEST_CASE("RSA 1024 bit encrypt/decrypt", "[RSA]") {
   bignum<1024> n = { 
     0xd0b750c8, 0x554b64c7, 0xa9d34d06, 0x8e020fb5, 0x2fea1b39, 0xc47971a3, 0x59f0eec5, 0xda0437ea, 
@@ -137,6 +133,5 @@ TEST_CASE("RSA 2048 bit encrypt/decrypt", "[RSA]") {
   CHECK(ct == c);
   CHECK(pt == k);
 }
-*/
 
 

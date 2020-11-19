@@ -3,6 +3,8 @@
 #include <caligo/bignum.h>
 #include <caligo/mont.h>
 
+#define FAST
+
 template <size_t N = 2048>
 struct rsa_public_key {
   MontgomeryState<N> s;
@@ -26,42 +28,19 @@ struct rsa_private_key : rsa_public_key<N> {
 
 template <size_t N = 2048>
 bignum<N> rsaep(rsa_public_key<N> key, bignum<N> m) {
-#ifdef FAST
-  return MontgomeryValue<N>(key.s, m).exp(key.e);
-#else
-  bignum<N> accum = 1;
-  bignum<N> z = m;
   if (key.e == bignum<N>(65537)) {
+    bignum<N> z = m;
     for (size_t x = 0; x < 16; x++) {
       z = (z * z).naive_reduce(key.n);
     }
-    accum = (z * m).naive_reduce(key.n);
+    return (z * m).naive_reduce(key.n);
   } else {
-    for (size_t x = 0; x < N; x++) {
-      if (key.e.bit(x)) accum = (accum * z).naive_reduce(key.n);
-  //    std::cout << "E " << to_string(accum) << "\n";
-      z = (z * z).naive_reduce(key.n);
-  //    std::cout << "E " << to_string(z) << "\n";
-    }
+    return MontgomeryValue<N>(key.s, m).exp(key.e);
   }
-  return accum;
-#endif
 }
 
 template <size_t N = 2048>
 bignum<N> rsadp(rsa_private_key<N> key, bignum<N> m) {
-#ifdef FAST
   return MontgomeryValue<N>(key.s, m).exp(key.d);
-#else
-  bignum<N> accum = 1;
-  bignum<N> z = m;
-  for (size_t x = 0; x < N; x++) {
-    if (key.d.bit(x)) accum = (accum * z).naive_reduce(key.n);
-//    std::cout << "D " << to_string(accum) << "\n";
-    z = (z * z).naive_reduce(key.n);
-//    std::cout << "D " << to_string(z) << "\n";
-  }
-  return accum;
-#endif
 }
 
