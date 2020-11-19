@@ -53,16 +53,17 @@ std::vector<uint8_t> HKDF_Expand_Label(std::vector<uint8_t> prk, std::string lab
 template <typename Hash>
 struct secret {
   std::vector<uint8_t> data;
+  std::vector<uint8_t> get_traffic_secret(std::vector<uint8_t> hashSoFar, bool client, bool handshake) {
+    const char* label = client ? (handshake ? "c hs traffic" : "c ap traffic") : (handshake ? "s hs traffic" : "s ap traffic");
+    return HKDF_Expand_Label<Hash>(data, label, hashSoFar, data.size());
+  }
   template <typename Cipher>
   key_iv_pair<Cipher> get_key_iv(std::vector<uint8_t> hashSoFar, bool client, bool handshake = false) {
-    const char* label = client ? (handshake ? "c hs traffic" : "c ap traffic") : (handshake ? "s hs traffic" : "s ap traffic");
-    std::vector<uint8_t> traffic_secret = HKDF_Expand_Label<Hash>(data, label, hashSoFar, data.size());
+    std::vector<uint8_t> traffic_secret = get_traffic_secret(hashSoFar, client, handshake);
     return {HKDF_Expand_Label<Hash>(traffic_secret, "key", {}, Cipher::keysize), HKDF_Expand_Label<Hash>(traffic_secret, "iv", {}, Cipher::ivsize)};
   }
   std::vector<uint8_t> get_finished_key(std::vector<uint8_t> hashSoFar, bool client) {
-    const char* label = client ? "c hs traffic" : "s hs traffic";
-    std::vector<uint8_t> traffic_secret = HKDF_Expand_Label<Hash>(data, label, hashSoFar, data.size());
-    return HKDF_Expand_Label<Hash>(traffic_secret, "finished", {}, Hash::hashsize);
+    return HKDF_Expand_Label<Hash>(get_traffic_secret(hashSoFar, client, true), "finished", {}, Hash::hashsize);
   }
 };
 
