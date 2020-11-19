@@ -51,7 +51,7 @@ struct MontgomeryState {
 //    std::cout << "T   " << t << "\n";
     auto [carry, t2] = t - N;
 //    std::cout << "T2  " << t2 << "\n";
-    return carry ? t : t2;
+    return vmn.first ? t2 : t;
   }
 };
 
@@ -79,13 +79,14 @@ struct MontgomeryValue {
   MontgomeryValue square() const {
     MontgomeryValue rv(state);
     rv.value = state->REDC(value.square());
+    /*
     bignum<K> v = (*this);
     bignum<K> rv2 = (v * v).naive_reduce(state->N);
     if (bignum<K>(rv) != rv2) {
       std::cout << "SOMETHING FAILED!\n";
       std::cout << bignum<K>(*this) << " -> " << bignum<K>(rv) << "\n";
       std::cout << bignum<K>(v) << " -> " << bignum<K>(rv2) << "\n";
-    }
+    }*/
     return rv;
   }
   MontgomeryValue exp(bignum<K> exponent) const {
