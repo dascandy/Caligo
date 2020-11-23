@@ -3,8 +3,6 @@
 #include <caligo/bignum.h>
 #include <caligo/mont.h>
 
-#define FAST
-
 template <size_t N = 2048>
 struct rsa_public_key {
   MontgomeryState<N> s;

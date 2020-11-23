@@ -74,6 +74,15 @@ struct MontgomeryValue {
     rv.value = state->REDC(value.square());
     return rv;
   }
+  MontgomeryValue exp(uint32_t exponent) const {
+    (void)exponent;
+    MontgomeryValue b = *this;
+    MontgomeryValue<K> v(*state, 1);
+    for (size_t n = 0; n < 16; n++) {
+      b = b.square();
+    }
+    return b * *this;
+  }
   MontgomeryValue exp(bignum<K> exponent) const {
     MontgomeryValue b = *this;
     MontgomeryValue<K> v(*state, 1);
