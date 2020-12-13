@@ -110,8 +110,10 @@ struct ec_value {
   friend std::string to_string(const ec_value& x) {
     return to_string(x.v);
   }
-  static ec_value random() {
-    return {bignum<256>::random()};
+  static ec_value random_private_key() {
+    ec_value key{bignum<256>::random()};
+    key.normalize();
+    return key;
   }
 };
 
