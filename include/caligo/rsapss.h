@@ -3,14 +3,14 @@
 #include <span>
 #include <vector>
 #include <cstdint>
-#include <caligo/sha.h>
+#include <caligo/sha1.h>
 
 namespace Caligo {
 
 // RFC8017, chapter B.2.1: MGF1
 //      Hash     hash function (hLen denotes the length in octets of
 //               the hash function output)
-template <typename Hash = SHA<1>>
+template <typename Hash = SHA1>
 struct MGF1 {
   static constexpr size_t hashsize = Hash::hashsize;
   static std::vector<uint8_t> MGF(std::vector<uint8_t> seed, size_t length) {

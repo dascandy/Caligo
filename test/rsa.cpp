@@ -1,5 +1,4 @@
 #include <caligo/rsa.h>
-#include <caligo/sha.h>
 #include <catch/catch.hpp>
 
 TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {

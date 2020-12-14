@@ -6,38 +6,14 @@
 #include <span>
 
 template <size_t bits>
-struct SHA;
+struct SHA2;
 
 template <>
-struct SHA<1> {
-  static constexpr size_t hashsize = 20;
-  SHA();
-  inline SHA(std::span<const uint8_t> data)
-  : SHA()
-  {
-    add(data);
-  }
-  void add(std::span<const uint8_t> data);
-  operator std::vector<uint8_t>() const;
-  static inline std::vector<uint8_t> getAsn1Id() {
-    return std::initializer_list<uint8_t>{ 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20 };
-  }
-  static size_t MaxLength() {
-    return (1ULL << 61) - 1;
-  }
-private:
-  void processChunk();
-  uint8_t chunk[64];
-  uint32_t h[5];
-  size_t msglength = 0;
-};
-
-template <>
-struct SHA<256> {
+struct SHA2<256> {
   static constexpr size_t hashsize = 32;
-  SHA();
-  inline SHA(std::span<const uint8_t> data)
-  : SHA()
+  SHA2();
+  inline SHA2(std::span<const uint8_t> data)
+  : SHA2()
   {
     add(data);
   }
@@ -57,11 +33,11 @@ private:
 };
 
 template <>
-struct SHA<512> {
+struct SHA2<512> {
   static constexpr size_t hashsize = 64;
-  SHA();
-  inline SHA(std::span<const uint8_t> data)
-  : SHA()
+  SHA2();
+  inline SHA2(std::span<const uint8_t> data)
+  : SHA2()
   {
     add(data);
   }
@@ -81,24 +57,24 @@ protected:
 };
 
 template <>
-struct SHA<384> : private SHA<512> {
+struct SHA2<384> : private SHA2<512> {
   static constexpr size_t hashsize = 48;
-  inline SHA() {
+  inline SHA2() {
     sha384_override();
   }
-  inline SHA(std::span<const uint8_t> data)
-  : SHA<512>()
+  inline SHA2(std::span<const uint8_t> data)
+  : SHA2<512>()
   {
     sha384_override();
     add(data);
   }
   void sha384_override();
   inline operator std::vector<uint8_t>() const {
-    std::vector<uint8_t> hash = *((SHA<512>*)this);
+    std::vector<uint8_t> hash = *((SHA2<512>*)this);
     hash.resize(hashsize);
     return hash;
   }
-  using SHA<512>::add;
+  using SHA2<512>::add;
   static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x41, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x02, 0x05, 0x00, 0x04, 0x30 };
   }
