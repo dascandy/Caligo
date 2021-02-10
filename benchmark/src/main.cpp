@@ -1,5 +1,7 @@
 #include <benchmark/benchmark.h>
 #include "caligo/rsa.h"
+#include "caligo/aes.h"
+#include <x86intrin.h>
 
 static void RSA_RSAEP_2048(benchmark::State& state) {
   bignum<2048> n = {
@@ -168,10 +170,124 @@ static void RSA_RSAEP_2048_fastpath_mont(benchmark::State& state) {
   }
 }
 
+static void AES_128_2K_NOKS(benchmark::State& state) {
+  AesKeySchedule<128> s128(std::array<uint8_t, 16>{
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
+  });
+
+  // Perform setup here
+  for (auto _ : state) {
+    char inbuffer[1024];
+    char outbuffer[1024];
+    for (size_t n = 0; n < 64; n++) {
+      _mm_storeu_si128((__m128i*)outbuffer + n, AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer + n)));
+    }
+    for (size_t n = 0; n < 64; n++) {
+      _mm_storeu_si128((__m128i*)inbuffer + n, AesEncrypt(s128, _mm_loadu_si128((__m128i*)outbuffer + n)));
+    }
+    benchmark::DoNotOptimize(inbuffer);
+    benchmark::ClobberMemory();
+  }
+}
+
+static void AES_256_2K_NOKS(benchmark::State& state) {
+  AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
+  });
+
+  // Perform setup here
+  for (auto _ : state) {
+    char inbuffer[1024];
+    char outbuffer[1024];
+    for (size_t n = 0; n < 64; n++) {
+      _mm_storeu_si128((__m128i*)outbuffer + n, AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer + n)));
+    }
+    for (size_t n = 0; n < 64; n++) {
+      _mm_storeu_si128((__m128i*)inbuffer + n, AesEncrypt(s256, _mm_loadu_si128((__m128i*)outbuffer + n)));
+    }
+    benchmark::DoNotOptimize(inbuffer);
+    benchmark::ClobberMemory();
+  }
+}
+
+static void AES_128_1KB(benchmark::State& state) {
+  // Perform setup here
+  for (auto _ : state) {
+    AesKeySchedule<128> s128(std::array<uint8_t, 16>{
+      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
+    });
+
+    char inbuffer[1024];
+    char outbuffer[1024];
+    for (size_t n = 0; n < 64; n++) {
+      _mm_storeu_si128((__m128i*)outbuffer + n, AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer + n)));
+    }
+    benchmark::DoNotOptimize(outbuffer);
+    benchmark::ClobberMemory();
+  }
+}
+
+static void AES_256_1KB(benchmark::State& state) {
+  // Perform setup here
+  for (auto _ : state) {
+    AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
+      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
+    });
+
+    char inbuffer[1024];
+    char outbuffer[1024];
+    for (size_t n = 0; n < 64; n++) {
+      _mm_storeu_si128((__m128i*)outbuffer + n, AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer + n)));
+    }
+    benchmark::DoNotOptimize(outbuffer);
+    benchmark::ClobberMemory();
+  }
+}
+
+static void AES_128_16(benchmark::State& state) {
+  // Perform setup here
+  for (auto _ : state) {
+    AesKeySchedule<128> s128(std::array<uint8_t, 16>{
+      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
+    });
+
+    char inbuffer[16];
+    char outbuffer[16];
+    _mm_storeu_si128((__m128i*)outbuffer, AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer)));
+    benchmark::DoNotOptimize(outbuffer);
+    benchmark::ClobberMemory();
+  }
+}
+
+static void AES_256_16(benchmark::State& state) {
+  // Perform setup here
+  for (auto _ : state) {
+    AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
+      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
+    });
+
+    char inbuffer[16];
+    char outbuffer[16];
+    _mm_storeu_si128((__m128i*)outbuffer, AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer)));
+    benchmark::DoNotOptimize(outbuffer);
+    benchmark::ClobberMemory();
+  }
+}
+
 // Register the function as a benchmark
 BENCHMARK(RSA_RSAEP_2048);
 BENCHMARK(RSA_RSAEP_2048_fastpath);
 BENCHMARK(RSA_RSADP_2048);
 BENCHMARK(RSA_RSAEP_2048_fastpath_mont);
+BENCHMARK(AES_256_2K_NOKS);
+BENCHMARK(AES_128_2K_NOKS);
+BENCHMARK(AES_256_1KB);
+BENCHMARK(AES_128_1KB);
+BENCHMARK(AES_256_16);
+BENCHMARK(AES_128_16);
+
 // Run the benchmark
 BENCHMARK_MAIN();

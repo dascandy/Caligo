@@ -16,7 +16,7 @@ static __m128i nextRoundKey(__m128i in) {
 }
 
 template <>
-AesKeySchedule<128>::AesKeySchedule(const std::span<uint8_t>& key) {
+AesKeySchedule<128>::AesKeySchedule(std::span<const uint8_t> key) {
   std::memcpy(eroundKeys, key.data(), key.size());
 
   eroundKeys[1] = nextRoundKey<0>(eroundKeys[0]);
@@ -32,7 +32,7 @@ AesKeySchedule<128>::AesKeySchedule(const std::span<uint8_t>& key) {
 }
 
 template <>
-AesKeySchedule<256>::AesKeySchedule(const std::span<uint8_t>& key) {
+AesKeySchedule<256>::AesKeySchedule(std::span<const uint8_t> key) {
   __m128i a = _mm_loadu_si128((__m128i*)key.data()), b = _mm_loadu_si128((__m128i*)(key.data()+16));
   eroundKeys[0]=a;
   eroundKeys[1]=b;
