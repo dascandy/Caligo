@@ -89,7 +89,7 @@ struct bignum {
     }
   }
   template <size_t K>
-  constexpr bignum<K> naive_reduce(bignum<K>& p) {
+  constexpr bignum<K> naive_reduce(const bignum<K>& p) const {
     bignum<Bits> s = p;
     bignum<Bits> c = *this;
     s.shl_word((Bits-K + 31) / 32);

@@ -132,7 +132,7 @@ struct rsa_public_key {
   std::array<uint8_t, 9> RsaSHA384 = {0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0c};
   std::array<uint8_t, 9> RsaSHA512 = {0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0d};
 
-  bignum<N> rsaep(bignum<N> m) {
+  bignum<N> rsaep(bignum<N> m) const {
     if (e == bignum<N>(65537)) {
       bignum<N> z = m;
       for (size_t x = 0; x < 16; x++) {
@@ -144,13 +144,13 @@ struct rsa_public_key {
     }
   }
   template <typename Hash>
-  bool validatePkcs1_5Signature(std::span<const uint8_t> data, std::span<const uint8_t> signature) {
+  bool validatePkcs1_5Signature(std::span<const uint8_t> data, std::span<const uint8_t> signature) const {
     std::vector<uint8_t> hash = Caligo::PKCS1<Hash>(data, signature.size());
     std::reverse(hash.begin(), hash.end());
     return bignum<N>(hash) == rsaep(bignum<N>(signature));
   }
   template <typename Hash, typename MGF>
-  bool validatePssSignature(std::span<const uint8_t> message, std::span<const uint8_t> sig) {
+  bool validatePssSignature(std::span<const uint8_t> message, std::span<const uint8_t> sig) const {
     if (sig.size() > (N / 8)) return false;
     std::vector<uint8_t> nsig(sig.data(), sig.data() + sig.size());
     std::reverse(nsig.begin(), nsig.end());
@@ -158,7 +158,7 @@ struct rsa_public_key {
     sig_bytes.resize(sig.size());
     std::reverse(sig_bytes.begin(), sig_bytes.end());
 
-    return EMSA_PSS_VERIFY<Hash, MGF::hashsize, MGF>(message, sig_bytes);
+    return Caligo::EMSA_PSS_VERIFY<Hash, MGF::hashsize, MGF>(message, sig_bytes);
   }
 };
 

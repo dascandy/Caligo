@@ -39,7 +39,7 @@ struct MontgomeryState {
     R1MN = REDC(R2MN);
     R3MN = REDC(R2MN * R2MN);
   }
-  bignum<K> REDC(bignum<2*K> v) {
+  bignum<K> REDC(bignum<2*K> v) const {
     bignum<K> m = (v.template slice<K>(0) * Ninv).template slice<K>(0);
     auto mn = m * N;
     auto vmn = v + mn;
@@ -52,9 +52,9 @@ struct MontgomeryState {
 
 template <size_t K>
 struct MontgomeryValue {
-  MontgomeryState<K>* state;
+  const MontgomeryState<K>* state;
   bignum<K> value;
-  MontgomeryValue(MontgomeryState<K>& state, const bignum<K>& in) 
+  MontgomeryValue(const MontgomeryState<K>& state, const bignum<K>& in) 
   : state(&state)
   {
     value = state.REDC(in * state.R2MN);
@@ -97,7 +97,7 @@ struct MontgomeryValue {
     return state->REDC(value);
   }
 private:
-  MontgomeryValue(MontgomeryState<K>* state)
+  MontgomeryValue(const MontgomeryState<K>* state)
   : state(state)
   {}
 };
