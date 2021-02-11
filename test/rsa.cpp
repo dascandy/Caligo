@@ -28,9 +28,10 @@ TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
 
   CHECK(pt2 == pt);
 
-  rsa_private_key<32> key(n, e, d);
-  auto ct2 = rsaep(key, pt);
-  auto npt = rsadp(key, ct2);
+  rsa_private_key<32> privkey(n, d);
+  rsa_public_key<32> pubkey(n, e);
+  auto ct2 = pubkey.rsaep(pt);
+  auto npt = privkey.rsadp(ct2);
   CHECK(ct == ct2);
   CHECK(pt == npt);
 }
@@ -67,9 +68,10 @@ TEST_CASE("RSA 1024 bit encrypt/decrypt", "[RSA]") {
     0x7b14fb9a, 0x4c765fd2, 0x92ae56dd, 0x2f2143b6, 0x2649cc70, 0xfb604fdc, 0x5cc1ade6, 0xe29de235,  
   };
 
-  rsa_private_key<1024> key(n, e, d);
-  auto ct = rsaep(key, k);
-  auto pt = rsadp(key, c);
+  rsa_private_key<1024> privkey(n, d);
+  rsa_public_key<1024> pubkey(n, e);
+  auto ct = pubkey.rsaep(k);
+  auto pt = privkey.rsadp(c);
   CHECK(ct == c);
   CHECK(pt == k);
 }
@@ -126,9 +128,10 @@ TEST_CASE("RSA 2048 bit encrypt/decrypt", "[RSA]") {
     0xc8cbfbf3, 0x06eda799, 0xe0c2a3ef, 0xb3c60915, 0x6b2715f2, 0x8c00ff58, 0x075e34ed, 0x5d327ce0,  
   };
 
-  rsa_private_key<2048> key(n, e, d);
-  auto ct = rsaep(key, k);
-  auto pt = rsadp(key, c);
+  rsa_private_key<2048> privkey(n, d);
+  rsa_public_key<2048> pubkey(n, e);
+  auto ct = pubkey.rsaep(k);
+  auto pt = privkey.rsadp(c);
   CHECK(ct == c);
   CHECK(pt == k);
 }
