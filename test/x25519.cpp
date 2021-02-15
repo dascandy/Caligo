@@ -46,7 +46,7 @@ TEST_CASE("basic subtraction tests", "[X25519]") {
   CHECK(a - b == c);
 
   ec_value a2 = { 0x41, 0, 0, 0, 0, 0, 0, 0x40000000};
-  ec_value b2 = { 0, 0, 0, 0, 0, 0, 0, 0, 0x80000000 };
+  ec_value b2 = { 0, 0, 0, 0, 0, 0, 0, 0x80000000 };
   ec_value c2 = { 0x40, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xC0000000 };
   CHECK(a2 - b2 == c2);
 
