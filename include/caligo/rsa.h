@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <caligo/sha1.h>
 #include <caligo/pkcs1.h>
+#include <caligo/random.h>
 
 namespace Caligo {
 
@@ -17,14 +18,14 @@ namespace Caligo {
 template <typename Hash = SHA1>
 struct MGF1 {
   static constexpr size_t hashsize = Hash::hashsize;
-  static std::vector<uint8_t> MGF(std::vector<uint8_t> seed, size_t length) {
+  static std::vector<uint8_t> MGF(std::span<const uint8_t> seed, size_t length) {
     // 1.  If maskLen > 2^32 hLen, output "mask too long" and stop.
     if (length > 0x100000000ULL) return {};
 
     // 2.  Let T be the empty octet string.
     std::vector<uint8_t> T;
 
-    std::vector<uint8_t> C = seed;
+    std::vector<uint8_t> C(seed.begin(), seed.end());
     C.resize(C.size() + 4);
     while (T.size() < length) {
       //  3B.  (repeatedly, while incrementing C) Concatenate the hash of the seed mgfSeed and C to the octet string T:
@@ -49,70 +50,34 @@ struct MGF1 {
   }
 };
 
-// RFC8017, chapter 9.1.2: EMSA-PSS-VERIFY
-template <typename Hash, size_t sLen, typename MGF = MGF1<>>
-bool EMSA_PSS_VERIFY(std::span<const uint8_t> data, std::span<const uint8_t> em) {
-  // 1.   If the length of M is greater than the input limitation for the hash 
-  // function output "inconsistent" and stop.
-  if (data.size() > Hash::MaxLength()) { printf("%s:%d\n", __FILE__, __LINE__); return false; }
+template <typename Hash, size_t sLen>
+std::vector<uint8_t> getSalt(std::span<const uint8_t> sig) {
+  std::span<const uint8_t> H(sig.data() + sig.size() - Hash::hashsize - 1, sig.data() + sig.size() - 1);
+  std::vector<uint8_t> dbmask = MGF1<Hash>::MGF(H, sig.size() - Hash::hashsize - 1);
+  std::vector<uint8_t> salt;
+  for (size_t n = dbmask.size() - sLen; n < dbmask.size(); n++) 
+  {
+    salt.push_back(sig[n] xor dbmask[n]);
+  }
+  return salt;
+}
 
-  // 2.   Let mHash = Hash(M), an octet string of length hLen.
+template <typename Hash>
+std::vector<uint8_t> generatePssData(std::span<const uint8_t> data, std::span<const uint8_t> salt, size_t desiredLength) {
   std::vector<uint8_t> mHash = Hash(data);
-
-  // 3.   If emLen < hLen + sLen + 2, output "inconsistent" and stop.
-  if (em.size() < Hash::hashsize + sLen + 2) { printf("%s:%d\n", __FILE__, __LINE__); return false; }
-
-  // 4.   If the rightmost octet of EM does not have hexadecimal value 0xbc, output "inconsistent" and stop.
-  if (em[em.size() - 1] != 0xbc) { printf("%s:%d\n", __FILE__, __LINE__); return false; }
- 
-  // 5.   Let maskedDB be the leftmost emLen - hLen - 1 octets of EM, and let H be the next hLen octets.
-  std::vector<uint8_t> H;
-  for (size_t n = em.size() - Hash::hashsize - 1; n < em.size() - 1; n++) {
-    H.push_back(em[n]);
+  Hash Hh;
+  Hh.add(std::vector<uint8_t>({0,0,0,0,0,0,0,0}));
+  Hh.add(mHash);
+  Hh.add(salt);
+  std::vector<uint8_t> H = Hh;
+  std::vector<uint8_t> dbmask = MGF1<Hash>::MGF(H, desiredLength - Hash::hashsize - 1);
+  dbmask[dbmask.size() - salt.size() - 1] ^= 0x01;
+  for (size_t n = 0; n < salt.size(); n++) {
+    dbmask[dbmask.size() - salt.size() + n] ^= salt[n];
   }
-
-  // 6.   If the leftmost 8emLen - emBits bits of the leftmost octet in maskedDB are not 
-  //             all equal to zero, output "inconsistent" and stop.
-  // Only support power of 8, so this is always a nop I think
-
-  // 7.   Let dbMask = MGF(H, emLen - hLen - 1).
-  std::vector<uint8_t> dbmask = MGF1<Hash>::MGF(H, em.size() - Hash::hashsize - 1);
-
-  // 8.   Let DB = maskedDB \xor dbMask.
-  std::vector<uint8_t> db;
-  for (size_t n = 0; n < em.size() - Hash::hashsize - 1; n++) 
-  {
-    db.push_back(em[n] xor dbmask[n]);
-  }
-  db[0] &= 0x7F;
-
-  // 9.   Set the leftmost 8emLen - emBits bits of the leftmost octet in DB to zero.
-  // Only support power of 8, so this is always a nop I think
-
-  // 10.  If the emLen - hLen - sLen - 2 leftmost octets of DB are not zero or if 
-  // the octet at position emLen - hLen - sLen - 1 (the leftmost position is 
-  // "position 1") does not have hexadecimal value 0x01, output "inconsistent" and 
-  // stop.
-  if (db[db.size() - sLen - 1] != 0x01) { printf("%s:%d\n", __FILE__, __LINE__); return false; }
-  for (size_t n = 0; n < db.size() - 1 - sLen; n++)
-  {
-    if (db[n] != 0) { printf("%s:%d\n", __FILE__, __LINE__); return false; }
-  }
-
-  // 11.  Let salt be the last sLen octets of DB.
-  // 12.  Let M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt;
-  //      M' is an octet string of length 8 + hLen + sLen with eight
-  //      initial zero octets.
-  std::vector<uint8_t> Mprime;
-  Mprime.resize(8);
-  Mprime.insert(Mprime.end(), mHash.begin(), mHash.end());
-  Mprime.insert(Mprime.end(), db.begin() + db.size() - sLen, db.end());
-
-  // 13.  Let H' = Hash(M'), an octet string of length hLen.
-  std::vector<uint8_t> Hprime = Hash(Mprime);
-
-  // 14.  If H = H', output "consistent".  Otherwise, output "inconsistent".
-  return Hprime == H;
+  dbmask.insert(dbmask.end(), H.begin(), H.end());
+  dbmask.push_back(0xbc);
+  return dbmask;
 }
 
 }
@@ -144,21 +109,21 @@ struct rsa_public_key {
     }
   }
   template <typename Hash>
-  bool validatePkcs1_5Signature(std::span<const uint8_t> data, std::span<const uint8_t> signature) const {
-    std::vector<uint8_t> hash = Caligo::PKCS1<Hash>(data, signature.size());
+  bool validatePkcs1_5Signature(std::span<const uint8_t> data, std::span<const uint8_t> sig) const {
+    std::vector<uint8_t> hash = Caligo::PKCS1<Hash>(data, sig.size());
     std::reverse(hash.begin(), hash.end());
-    return bignum<N>(hash) == rsaep(bignum<N>(signature));
+    return bignum<N>(hash) == rsaep(bignum<N>(sig));
   }
   template <typename Hash, typename MGF>
   bool validatePssSignature(std::span<const uint8_t> message, std::span<const uint8_t> sig) const {
-    if (sig.size() > (N / 8)) return false;
-    std::vector<uint8_t> nsig(sig.data(), sig.data() + sig.size());
-    std::reverse(nsig.begin(), nsig.end());
-    auto sig_bytes = rsaep(bignum<N>(nsig)).as_bytes();
-    sig_bytes.resize(sig.size());
-    std::reverse(sig_bytes.begin(), sig_bytes.end());
-
-    return Caligo::EMSA_PSS_VERIFY<Hash, MGF::hashsize, MGF>(message, sig_bytes);
+    std::vector<uint8_t> sigR(sig.begin(), sig.end());
+    std::reverse(sigR.begin(), sigR.end());
+    std::vector<uint8_t> dSigV = rsaep(bignum<N>(sigR)).as_bytes();
+    dSigV.resize(sig.size());
+    std::reverse(dSigV.begin(), dSigV.end());
+    std::vector<uint8_t> pssdata = Caligo::generatePssData<Hash>(message, Caligo::getSalt<Hash, MGF::hashsize>(dSigV), dSigV.size());
+    pssdata[0] &= 0x7F;
+    return dSigV == pssdata;
   }
 };
 
@@ -172,7 +137,27 @@ struct rsa_private_key {
   , n(n)
   , d(d)
   {}
-  bignum<N> rsadp(bignum<N> m) {
+  bignum<N> rsadp(bignum<N> m) const {
     return MontgomeryValue<N>(s, m).exp(d);
   }
+  template <typename Hash>
+  std::vector<uint8_t> signPkcs1_5Signature(std::span<const uint8_t> data) const {
+    std::vector<uint8_t> hash = Caligo::PKCS1<Hash>(data, N/8);
+    std::reverse(hash.begin(), hash.end());
+    return rsadp(bignum<N>(hash)).as_bytes();
+  }
+  template <typename Hash, typename MGF>
+  std::vector<uint8_t> signPssSignature(std::span<const uint8_t> message) const {
+    std::vector<uint8_t> salt;
+    salt.resize(MGF::hashsize);
+    generate_random(salt);
+    std::vector<uint8_t> pssData = Caligo::generatePssData<Hash>(message, salt, N/8);
+    pssData[0] &= 0x7F;
+    std::reverse(pssData.begin(), pssData.end());
+    std::vector<uint8_t> signature = rsadp(bignum<N>(pssData)).as_bytes();
+    std::reverse(signature.begin(), signature.end());
+    return signature;
+  }
 };
+
+
