@@ -23,10 +23,11 @@ void test_pss(std::span<const uint8_t> n,
   CHECK(isOk);
 
   rsa_private_key<Bits> privkey = rsa_private_key<Bits>(bignum<Bits>(nn), bignum<Bits>(dd));
-  std::vector<uint8_t> newSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msg);
+  std::vector<uint8_t> msghash = Hash(msg);
+  std::vector<uint8_t> newSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msghash);
   CHECK(newSig != std::vector<uint8_t>(s.begin(), s.end()));
   
-  std::vector<uint8_t> thirdSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msg);
+  std::vector<uint8_t> thirdSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msghash);
   CHECK(newSig != thirdSig);
 
   bool alsoOk = pubkey.template validatePssSignature<Hash, Caligo::MGF1<SHA1>>(msg, newSig) &&

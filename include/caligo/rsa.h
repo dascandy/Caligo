@@ -2,13 +2,15 @@
 
 #include <caligo/bignum.h>
 #include <caligo/mont.h>
+#include <caligo/sha1.h>
+#include <caligo/pkcs1.h>
+#include <caligo/random.h>
+
 #include <span>
 #include <array>
 #include <vector>
 #include <cstdint>
-#include <caligo/sha1.h>
-#include <caligo/pkcs1.h>
-#include <caligo/random.h>
+#include <cstdio>
 
 namespace Caligo {
 
@@ -64,10 +66,9 @@ std::vector<uint8_t> getSalt(std::span<const uint8_t> sig) {
 
 template <typename Hash>
 std::vector<uint8_t> generatePssData(std::span<const uint8_t> data, std::span<const uint8_t> salt, size_t desiredLength) {
-  std::vector<uint8_t> mHash = Hash(data);
   Hash Hh;
   Hh.add(std::vector<uint8_t>({0,0,0,0,0,0,0,0}));
-  Hh.add(mHash);
+  Hh.add(data);
   Hh.add(salt);
   std::vector<uint8_t> H = Hh;
   std::vector<uint8_t> dbmask = MGF1<Hash>::MGF(H, desiredLength - Hash::hashsize - 1);
@@ -118,11 +119,24 @@ struct rsa_public_key {
   bool validatePssSignature(std::span<const uint8_t> message, std::span<const uint8_t> sig) const {
     std::vector<uint8_t> sigR(sig.begin(), sig.end());
     std::reverse(sigR.begin(), sigR.end());
-    std::vector<uint8_t> dSigV = rsaep(bignum<N>(sigR)).as_bytes();
+    bignum<N> sigBN = bignum<N>(sigR);
+    std::vector<uint8_t> dSigV = rsaep(sigBN).as_bytes();
     dSigV.resize(sig.size());
     std::reverse(dSigV.begin(), dSigV.end());
-    std::vector<uint8_t> pssdata = Caligo::generatePssData<Hash>(message, Caligo::getSalt<Hash, MGF::hashsize>(dSigV), dSigV.size());
+    std::vector<uint8_t> salt = Caligo::getSalt<Hash, MGF::hashsize>(dSigV);
+    std::vector<uint8_t> hMessage = Hash(message);
+    std::vector<uint8_t> pssdata = Caligo::generatePssData<Hash>(hMessage, salt, dSigV.size());
     pssdata[0] &= 0x7F;
+    printf("dSigV ");
+    for (auto& c : dSigV) {
+      printf("%02x ", c);
+    }
+    printf("\n");
+    printf("pssdata ");
+    for (auto& c : pssdata) {
+      printf("%02x ", c);
+    }
+    printf("\n");
     return dSigV == pssdata;
   }
 };
@@ -132,29 +146,41 @@ struct rsa_private_key {
   MontgomeryState<N> s;
   bignum<N> n;
   bignum<N> d;
+  size_t actualN = N - 1;
   rsa_private_key(bignum<N> n, bignum<N> d)
   : s(n)
   , n(n)
   , d(d)
-  {}
+  {
+    while (not n.bit(actualN)) actualN--;
+    actualN++;
+  }
   bignum<N> rsadp(bignum<N> m) const {
     return MontgomeryValue<N>(s, m).exp(d);
   }
   template <typename Hash>
   std::vector<uint8_t> signPkcs1_5Signature(std::span<const uint8_t> data) const {
-    std::vector<uint8_t> hash = Caligo::PKCS1<Hash>(data, N/8);
+    std::vector<uint8_t> hash = Caligo::PKCS1<Hash>(data, actualN / 8);
     std::reverse(hash.begin(), hash.end());
-    return rsadp(bignum<N>(hash)).as_bytes();
+    std::vector<uint8_t> signature = rsadp(bignum<N>(hash)).as_bytes();
+    while (signature[signature.size() - 1] == 0 && (signature[signature.size() - 2] & 0x80) == 0x00) signature.pop_back();
+    std::reverse(signature.begin(), signature.end());
+    return signature;
   }
   template <typename Hash, typename MGF>
   std::vector<uint8_t> signPssSignature(std::span<const uint8_t> message) const {
     std::vector<uint8_t> salt;
     salt.resize(MGF::hashsize);
+#if 1
     generate_random(salt);
-    std::vector<uint8_t> pssData = Caligo::generatePssData<Hash>(message, salt, N/8);
+#else
+    salt = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
+#endif
+    std::vector<uint8_t> pssData = Caligo::generatePssData<Hash>(message, salt, actualN / 8);
     pssData[0] &= 0x7F;
     std::reverse(pssData.begin(), pssData.end());
     std::vector<uint8_t> signature = rsadp(bignum<N>(pssData)).as_bytes();
+    while (signature[signature.size() - 1] == 0 && (signature[signature.size() - 2] & 0x80) == 0x00) signature.pop_back();
     std::reverse(signature.begin(), signature.end());
     return signature;
   }
