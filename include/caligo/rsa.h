@@ -127,16 +127,6 @@ struct rsa_public_key {
     std::vector<uint8_t> hMessage = Hash(message);
     std::vector<uint8_t> pssdata = Caligo::generatePssData<Hash>(hMessage, salt, dSigV.size());
     pssdata[0] &= 0x7F;
-    printf("dSigV ");
-    for (auto& c : dSigV) {
-      printf("%02x ", c);
-    }
-    printf("\n");
-    printf("pssdata ");
-    for (auto& c : pssdata) {
-      printf("%02x ", c);
-    }
-    printf("\n");
     return dSigV == pssdata;
   }
 };
