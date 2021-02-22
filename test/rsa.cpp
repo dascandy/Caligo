@@ -36,6 +36,23 @@ TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
   CHECK(pt == npt);
 }
 
+TEST_CASE("RSA 64-bit encrypt/decrypt", "[RSA]") {
+  bignum<64> p = 63863;
+  bignum<64> q = 65413;
+  bignum<64> n = p * q;
+//  bignum<64> lcm_pq = 2088670572;
+  bignum<64> e = 65537;
+  bignum<64> d = 717714593;
+
+  bignum<64> pt = 132098123;
+
+  rsa_private_key<64> privkey(n, d);
+  rsa_public_key<64> pubkey(n, e);
+  auto ct2 = pubkey.rsaep(pt);
+  auto npt = privkey.rsadp(ct2);
+  CHECK(pt == npt);
+}
+
 TEST_CASE("RSA 1024 bit encrypt/decrypt", "[RSA]") {
   bignum<1024> n = { 
     0xd0b750c8, 0x554b64c7, 0xa9d34d06, 0x8e020fb5, 0x2fea1b39, 0xc47971a3, 0x59f0eec5, 0xda0437ea, 
