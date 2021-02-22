@@ -92,11 +92,16 @@ struct bignum {
   constexpr bignum<K> naive_reduce(const bignum<K>& p) const {
     bignum<Bits> s = p;
     bignum<Bits> c = *this;
+    size_t loopCount = ((Bits - K + 31) / 32) * 32;
     s.shl_word((Bits-K + 31) / 32);
-    for (size_t n = ((Bits + 31) / 32) * 32; n > K; n--) {
-      s.shr1();
+    while (s.v[Bits/32 - 1] == 0) {
+      s.shl_word(1);
+      loopCount += 32;
+    }
+    for (size_t n = loopCount; n > 0; n--) {
       auto [overflow, c2] = c - s;
       c = (overflow ? c : c2);
+      s.shr1();
     }
     return c;
   }
