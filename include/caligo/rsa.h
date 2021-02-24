@@ -158,14 +158,7 @@ struct rsa_private_key {
     return signature;
   }
   template <typename Hash, typename MGF>
-  std::vector<uint8_t> signPssSignature(std::span<const uint8_t> message) const {
-    std::vector<uint8_t> salt;
-    salt.resize(MGF::hashsize);
-#if 1
-    generate_random(salt);
-#else
-    salt = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
-#endif
+  std::vector<uint8_t> signPssSignature(std::span<const uint8_t> message, std::span<const uint8_t> salt) const {
     std::vector<uint8_t> pssData = Caligo::generatePssData<Hash>(message, salt, actualN / 8);
     pssData[0] &= 0x7F;
     std::reverse(pssData.begin(), pssData.end());

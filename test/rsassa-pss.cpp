@@ -10,7 +10,6 @@ void test_pss(std::span<const uint8_t> n,
               std::span<const uint8_t> salt,
               std::span<const uint8_t> msg,
               std::span<const uint8_t> s) {
-  (void)salt; // need to read it from signature; only useful for signing test
   std::vector<uint8_t> nn(n.data(), n.data() + n.size());
   std::vector<uint8_t> ee(e.data(), e.data() + e.size());
   std::vector<uint8_t> dd(d.data(), d.data() + d.size());
@@ -24,10 +23,13 @@ void test_pss(std::span<const uint8_t> n,
 
   rsa_private_key<Bits> privkey = rsa_private_key<Bits>(bignum<Bits>(nn), bignum<Bits>(dd));
   std::vector<uint8_t> msghash = Hash(msg);
-  std::vector<uint8_t> newSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msghash);
+  std::vector<uint8_t> salt2(salt.begin(), salt.end());
+  salt2[0] ^= 1;
+  std::vector<uint8_t> newSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msghash, salt2);
   CHECK(newSig != std::vector<uint8_t>(s.begin(), s.end()));
   
-  std::vector<uint8_t> thirdSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msghash);
+  salt2[0] ^= 2;
+  std::vector<uint8_t> thirdSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msghash, salt2);
   CHECK(newSig != thirdSig);
 
   bool alsoOk = pubkey.template validatePssSignature<Hash, Caligo::MGF1<SHA1>>(msg, newSig) &&
