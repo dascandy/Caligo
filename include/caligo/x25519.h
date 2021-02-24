@@ -119,11 +119,6 @@ struct ec_value {
   }
 };
 
-inline std::ostream& operator<<(std::ostream& os, const ec_value& e) {
-  os << e.v;
-  return os;
-}
-
 inline ec_value X25519(ec_value k, ec_value u) {
    k.normalize();
 
@@ -161,5 +156,10 @@ inline ec_value X25519(ec_value k, ec_value u) {
    return rv;
 }
 
+}
+
+inline std::ostream& operator<<(std::ostream& os, const Caligo::ec_value& e) {
+  os << e.v;
+  return os;
 }
 

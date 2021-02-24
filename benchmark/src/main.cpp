@@ -4,7 +4,7 @@
 #include <x86intrin.h>
 
 static void RSA_RSAEP_2048(benchmark::State& state) {
-  bignum<2048> n = {
+  Caligo::bignum<2048> n = {
     0xd9a098da, 0x000ac58e, 0xfb7d6c98, 0x9b746844, 0x4d369d98, 0x65eec869, 0x6a4bc54e, 0xf47f4d04,
     0xbb5fb531, 0x134d9edc, 0x1254c966, 0x5f96462c, 0x190a1c47, 0xccf970b3, 0xa00a922a, 0x37e5ceb5,
     0x48ad638c, 0x425ee963, 0x10db234a, 0x97ed0434, 0x2de813b5, 0xb6a4eb1a, 0xce5fef5b, 0x0c22e233,
@@ -14,7 +14,7 @@ static void RSA_RSAEP_2048(benchmark::State& state) {
     0x1557c8b2, 0x5257a131, 0xadc7f81a, 0xdf9b481c, 0x8c244053, 0x56ea4200, 0x9676bd66, 0x06e7fede,
     0x6b76a6a2, 0x64a97507, 0xf15f0f12, 0xdec9d7bd, 0x473af9e0, 0xae86399c, 0xf1f2d402, 0x1f13325d,
   };
-  bignum<2048> e = {
+  Caligo::bignum<2048> e = {
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0xd107cf43, 0xa692284d, 0xbe81e069,
     0x739b0fa1, 0x21f605ee, 0xcc587c05, 0x84051469, 0x06b56e10, 0x42a19196, 0x663e14b4, 0xd6d13288,
     0xb708cd99, 0x8db8aa5a, 0xd53966d5, 0x47509426, 0xa2e28946, 0xae2eae99, 0xc9fd7478, 0xde2dfed9,
@@ -24,7 +24,7 @@ static void RSA_RSAEP_2048(benchmark::State& state) {
     0xaa010058, 0xc2454aa8, 0x91f5dba1, 0x1ff450af, 0xcd26afc5, 0x71858df2, 0x230ee7c3, 0x3e86e814,
     0xc5278012, 0x8400e8ef, 0xd60a3980, 0x557b3e95, 0xe8e6b01c, 0xe80d9a3a, 0x08faf173, 0x0d065ef1,
   };
-  bignum<2048> k = {
+  Caligo::bignum<2048> k = {
     0x4d252235, 0x7254b309, 0xb5239d33, 0x50d5c0c4, 0xd3b2f196, 0x7e17da27, 0x450b12a4, 0x70c5283f,
     0x10b7a2c3, 0x3ea10081, 0x66481245, 0xbcb2480c, 0xcd4ac015, 0x5a82435e, 0xa44a2cdc, 0x92e545b3,
     0x4ecd1ae8, 0x7c5d6fb1, 0xaaba9ea1, 0x5053edf2, 0x3f82c391, 0x8d9ec313, 0x3a52ba80, 0x76df5c91,
@@ -35,7 +35,7 @@ static void RSA_RSAEP_2048(benchmark::State& state) {
     0xc8cbfbf3, 0x06eda799, 0xe0c2a3ef, 0xb3c60915, 0x6b2715f2, 0x8c00ff58, 0x075e34ed, 0x5d327ce0,
   };
 
-  rsa_public_key<2048> key(n, e);
+  Caligo::rsa_public_key<2048> key(n, e);
 
   // Perform setup here
   for (auto _ : state) {
@@ -44,7 +44,7 @@ static void RSA_RSAEP_2048(benchmark::State& state) {
 }
 
 static void RSA_RSADP_2048(benchmark::State& state) {
-  bignum<2048> n = {
+  Caligo::bignum<2048> n = {
     0xd9a098da, 0x000ac58e, 0xfb7d6c98, 0x9b746844, 0x4d369d98, 0x65eec869, 0x6a4bc54e, 0xf47f4d04,
     0xbb5fb531, 0x134d9edc, 0x1254c966, 0x5f96462c, 0x190a1c47, 0xccf970b3, 0xa00a922a, 0x37e5ceb5,
     0x48ad638c, 0x425ee963, 0x10db234a, 0x97ed0434, 0x2de813b5, 0xb6a4eb1a, 0xce5fef5b, 0x0c22e233,
@@ -54,7 +54,7 @@ static void RSA_RSADP_2048(benchmark::State& state) {
     0x1557c8b2, 0x5257a131, 0xadc7f81a, 0xdf9b481c, 0x8c244053, 0x56ea4200, 0x9676bd66, 0x06e7fede,
     0x6b76a6a2, 0x64a97507, 0xf15f0f12, 0xdec9d7bd, 0x473af9e0, 0xae86399c, 0xf1f2d402, 0x1f13325d,
   };
-  bignum<2048> d = {
+  Caligo::bignum<2048> d = {
     0x592cf1ce, 0xbd9cb996, 0x16c57c22, 0x81851c02, 0x258ff73b, 0xedceffec, 0x955ab877, 0xe21abbc4,
     0xe8488e83, 0x6593ae9d, 0x1f21cde1, 0xbf089f1e, 0x03190752, 0xcd9cee2e, 0x66f478a5, 0x0a154c65,
     0x4e530534, 0xbed03759, 0xe15b95f6, 0x5c7302fc, 0x95868f37, 0xa2b438e6, 0x40e25820, 0xa3f529c5,
@@ -64,7 +64,7 @@ static void RSA_RSADP_2048(benchmark::State& state) {
     0x34f158e8, 0xbb020225, 0x8abd92f7, 0x75747df6, 0x484ad66c, 0x120d6ef6, 0x242801a1, 0xcff83d06,
     0x5497701e, 0xb8b6647d, 0x69b4dc91, 0xc49ca434, 0x792a46b8, 0xc18ee703, 0x54add44d, 0x771db2b9,
   };
-  bignum<2048> k = {
+  Caligo::bignum<2048> k = {
     0x4d252235, 0x7254b309, 0xb5239d33, 0x50d5c0c4, 0xd3b2f196, 0x7e17da27, 0x450b12a4, 0x70c5283f,
     0x10b7a2c3, 0x3ea10081, 0x66481245, 0xbcb2480c, 0xcd4ac015, 0x5a82435e, 0xa44a2cdc, 0x92e545b3,
     0x4ecd1ae8, 0x7c5d6fb1, 0xaaba9ea1, 0x5053edf2, 0x3f82c391, 0x8d9ec313, 0x3a52ba80, 0x76df5c91,
@@ -75,7 +75,7 @@ static void RSA_RSADP_2048(benchmark::State& state) {
     0xc8cbfbf3, 0x06eda799, 0xe0c2a3ef, 0xb3c60915, 0x6b2715f2, 0x8c00ff58, 0x075e34ed, 0x5d327ce0,
   };
 
-  rsa_private_key<2048> key(n, d);
+  Caligo::rsa_private_key<2048> key(n, d);
 
   // Perform setup here
   for (auto _ : state) {
@@ -84,7 +84,7 @@ static void RSA_RSADP_2048(benchmark::State& state) {
 }
 
 static void RSA_RSAEP_2048_fastpath(benchmark::State& state) {
-  bignum<2048> n = {
+  Caligo::bignum<2048> n = {
     0xd9a098da, 0x000ac58e, 0xfb7d6c98, 0x9b746844, 0x4d369d98, 0x65eec869, 0x6a4bc54e, 0xf47f4d04,
     0xbb5fb531, 0x134d9edc, 0x1254c966, 0x5f96462c, 0x190a1c47, 0xccf970b3, 0xa00a922a, 0x37e5ceb5,
     0x48ad638c, 0x425ee963, 0x10db234a, 0x97ed0434, 0x2de813b5, 0xb6a4eb1a, 0xce5fef5b, 0x0c22e233,
@@ -94,8 +94,8 @@ static void RSA_RSAEP_2048_fastpath(benchmark::State& state) {
     0x1557c8b2, 0x5257a131, 0xadc7f81a, 0xdf9b481c, 0x8c244053, 0x56ea4200, 0x9676bd66, 0x06e7fede,
     0x6b76a6a2, 0x64a97507, 0xf15f0f12, 0xdec9d7bd, 0x473af9e0, 0xae86399c, 0xf1f2d402, 0x1f13325d,
   };
-  bignum<2048> e = 65537;
-  bignum<2048> k = {
+  Caligo::bignum<2048> e = 65537;
+  Caligo::bignum<2048> k = {
     0x4d252235, 0x7254b309, 0xb5239d33, 0x50d5c0c4, 0xd3b2f196, 0x7e17da27, 0x450b12a4, 0x70c5283f,
     0x10b7a2c3, 0x3ea10081, 0x66481245, 0xbcb2480c, 0xcd4ac015, 0x5a82435e, 0xa44a2cdc, 0x92e545b3,
     0x4ecd1ae8, 0x7c5d6fb1, 0xaaba9ea1, 0x5053edf2, 0x3f82c391, 0x8d9ec313, 0x3a52ba80, 0x76df5c91,
@@ -106,7 +106,7 @@ static void RSA_RSAEP_2048_fastpath(benchmark::State& state) {
     0xc8cbfbf3, 0x06eda799, 0xe0c2a3ef, 0xb3c60915, 0x6b2715f2, 0x8c00ff58, 0x075e34ed, 0x5d327ce0,
   };
 
-  rsa_public_key<2048> key(n, e);
+  Caligo::rsa_public_key<2048> key(n, e);
 
   // Perform setup here
   for (auto _ : state) {
@@ -115,12 +115,12 @@ static void RSA_RSAEP_2048_fastpath(benchmark::State& state) {
 }
 
 template <size_t N = 2048>
-bignum<N> rsaep_FP(rsa_public_key<N> key, bignum<N> m) {
-  return MontgomeryValue<N>(key.s, m).exp(65537);
+Caligo::bignum<N> rsaep_FP(Caligo::rsa_public_key<N> key, Caligo::bignum<N> m) {
+  return Caligo::MontgomeryValue<N>(key.s, m).exp(65537);
 }
 
 static void RSA_RSAEP_2048_fastpath_mont(benchmark::State& state) {
-  bignum<2048> n = {
+  Caligo::bignum<2048> n = {
     0xd9a098da, 0x000ac58e, 0xfb7d6c98, 0x9b746844, 0x4d369d98, 0x65eec869, 0x6a4bc54e, 0xf47f4d04,
     0xbb5fb531, 0x134d9edc, 0x1254c966, 0x5f96462c, 0x190a1c47, 0xccf970b3, 0xa00a922a, 0x37e5ceb5,
     0x48ad638c, 0x425ee963, 0x10db234a, 0x97ed0434, 0x2de813b5, 0xb6a4eb1a, 0xce5fef5b, 0x0c22e233,
@@ -130,8 +130,8 @@ static void RSA_RSAEP_2048_fastpath_mont(benchmark::State& state) {
     0x1557c8b2, 0x5257a131, 0xadc7f81a, 0xdf9b481c, 0x8c244053, 0x56ea4200, 0x9676bd66, 0x06e7fede,
     0x6b76a6a2, 0x64a97507, 0xf15f0f12, 0xdec9d7bd, 0x473af9e0, 0xae86399c, 0xf1f2d402, 0x1f13325d,
   };
-  bignum<2048> e = 65537;
-  bignum<2048> k = {
+  Caligo::bignum<2048> e = 65537;
+  Caligo::bignum<2048> k = {
     0x4d252235, 0x7254b309, 0xb5239d33, 0x50d5c0c4, 0xd3b2f196, 0x7e17da27, 0x450b12a4, 0x70c5283f,
     0x10b7a2c3, 0x3ea10081, 0x66481245, 0xbcb2480c, 0xcd4ac015, 0x5a82435e, 0xa44a2cdc, 0x92e545b3,
     0x4ecd1ae8, 0x7c5d6fb1, 0xaaba9ea1, 0x5053edf2, 0x3f82c391, 0x8d9ec313, 0x3a52ba80, 0x76df5c91,
@@ -142,7 +142,7 @@ static void RSA_RSAEP_2048_fastpath_mont(benchmark::State& state) {
     0xc8cbfbf3, 0x06eda799, 0xe0c2a3ef, 0xb3c60915, 0x6b2715f2, 0x8c00ff58, 0x075e34ed, 0x5d327ce0,
   };
 
-  rsa_public_key<2048> key(n, e);
+  Caligo::rsa_public_key<2048> key(n, e);
 
   // Perform setup here
   for (auto _ : state) {
@@ -151,7 +151,7 @@ static void RSA_RSAEP_2048_fastpath_mont(benchmark::State& state) {
 }
 
 static void AES_128_2K_NOKS(benchmark::State& state) {
-  AesKeySchedule<128> s128(std::array<uint8_t, 16>{
+  Caligo::AesKeySchedule<128> s128(std::array<uint8_t, 16>{
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
   });
 
@@ -160,10 +160,10 @@ static void AES_128_2K_NOKS(benchmark::State& state) {
     char inbuffer[1024];
     char outbuffer[1024];
     for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)outbuffer + n, AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer + n)));
+      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer + n)));
     }
     for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)inbuffer + n, AesEncrypt(s128, _mm_loadu_si128((__m128i*)outbuffer + n)));
+      _mm_storeu_si128((__m128i*)inbuffer + n, Caligo::AesEncrypt(s128, _mm_loadu_si128((__m128i*)outbuffer + n)));
     }
     benchmark::DoNotOptimize(inbuffer);
     benchmark::ClobberMemory();
@@ -171,7 +171,7 @@ static void AES_128_2K_NOKS(benchmark::State& state) {
 }
 
 static void AES_256_2K_NOKS(benchmark::State& state) {
-  AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
+  Caligo::AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
   });
@@ -181,10 +181,10 @@ static void AES_256_2K_NOKS(benchmark::State& state) {
     char inbuffer[1024];
     char outbuffer[1024];
     for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)outbuffer + n, AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer + n)));
+      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer + n)));
     }
     for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)inbuffer + n, AesEncrypt(s256, _mm_loadu_si128((__m128i*)outbuffer + n)));
+      _mm_storeu_si128((__m128i*)inbuffer + n, Caligo::AesEncrypt(s256, _mm_loadu_si128((__m128i*)outbuffer + n)));
     }
     benchmark::DoNotOptimize(inbuffer);
     benchmark::ClobberMemory();
@@ -194,14 +194,14 @@ static void AES_256_2K_NOKS(benchmark::State& state) {
 static void AES_128_1KB(benchmark::State& state) {
   // Perform setup here
   for (auto _ : state) {
-    AesKeySchedule<128> s128(std::array<uint8_t, 16>{
+    Caligo::AesKeySchedule<128> s128(std::array<uint8_t, 16>{
       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
     });
 
     char inbuffer[1024];
     char outbuffer[1024];
     for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)outbuffer + n, AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer + n)));
+      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer + n)));
     }
     benchmark::DoNotOptimize(outbuffer);
     benchmark::ClobberMemory();
@@ -211,7 +211,7 @@ static void AES_128_1KB(benchmark::State& state) {
 static void AES_256_1KB(benchmark::State& state) {
   // Perform setup here
   for (auto _ : state) {
-    AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
+    Caligo::AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
       0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
     });
@@ -219,7 +219,7 @@ static void AES_256_1KB(benchmark::State& state) {
     char inbuffer[1024];
     char outbuffer[1024];
     for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)outbuffer + n, AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer + n)));
+      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer + n)));
     }
     benchmark::DoNotOptimize(outbuffer);
     benchmark::ClobberMemory();
@@ -229,13 +229,13 @@ static void AES_256_1KB(benchmark::State& state) {
 static void AES_128_16(benchmark::State& state) {
   // Perform setup here
   for (auto _ : state) {
-    AesKeySchedule<128> s128(std::array<uint8_t, 16>{
+    Caligo::AesKeySchedule<128> s128(std::array<uint8_t, 16>{
       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
     });
 
     char inbuffer[16];
     char outbuffer[16];
-    _mm_storeu_si128((__m128i*)outbuffer, AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer)));
+    _mm_storeu_si128((__m128i*)outbuffer, Caligo::AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer)));
     benchmark::DoNotOptimize(outbuffer);
     benchmark::ClobberMemory();
   }
@@ -244,14 +244,14 @@ static void AES_128_16(benchmark::State& state) {
 static void AES_256_16(benchmark::State& state) {
   // Perform setup here
   for (auto _ : state) {
-    AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
+    Caligo::AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
       0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
     });
 
     char inbuffer[16];
     char outbuffer[16];
-    _mm_storeu_si128((__m128i*)outbuffer, AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer)));
+    _mm_storeu_si128((__m128i*)outbuffer, Caligo::AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer)));
     benchmark::DoNotOptimize(outbuffer);
     benchmark::ClobberMemory();
   }
