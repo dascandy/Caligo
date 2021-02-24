@@ -1,6 +1,8 @@
 #include <cstddef>
 #include <caligo/bignum.h>
 
+namespace Caligo {
+
 template <size_t N>
 inline auto RecursiveInverseModPower2(bignum<N> A) {
   if constexpr (bignum<N>::multiword) {
@@ -101,4 +103,6 @@ private:
   : state(state)
   {}
 };
+
+}
 

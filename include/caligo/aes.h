@@ -6,6 +6,8 @@
 #include <x86intrin.h>
 #endif
 
+namespace Caligo {
+
 template <size_t bits>
 class AesKeySchedule;
 template <size_t bits>
@@ -45,5 +47,7 @@ struct AES {
     return AesEncrypt(key, block);
   }
 };
+
+}
 
 

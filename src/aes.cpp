@@ -8,6 +8,8 @@
 #ifdef __x86_64__
 #include <x86intrin.h>
 
+namespace Caligo {
+
 template <uint8_t round>
 static __m128i nextRoundKey(__m128i in) {
   constexpr const uint8_t roundConstants[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36 };
@@ -62,6 +64,8 @@ AesKeySchedule<256>::AesKeySchedule(std::span<const uint8_t> key) {
   eroundKeys[13]=b;
   a ^= _mm_slli_si128 (a, 0x4) ^ _mm_slli_si128 (a, 0x8) ^ _mm_slli_si128 (a, 0xC) ^ _mm_shuffle_epi32(_mm_aeskeygenassist_si128 (b,0x40), 0xff);
   eroundKeys[14]=a;
+}
+
 }
 #else
 #error Not implemented

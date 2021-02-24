@@ -6,6 +6,8 @@
 #include <string>
 #include "caligo/bignum.h"
 
+namespace Caligo {
+
 struct ec_value {
   static constexpr bignum<256> modulus = { 0x7FFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFED };
   static constexpr bignum<256> zero = { 0,0,0,0,0,0,0,0 };
@@ -157,5 +159,7 @@ inline ec_value X25519(ec_value k, ec_value u) {
    ec_value rv = x_2 * inverse(z_2);
    rv.applyModulus();
    return rv;
+}
+
 }
 

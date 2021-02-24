@@ -1,6 +1,8 @@
 #include <catch/catch.hpp>
 #include <caligo/bignum.h>
 
+namespace Caligo {
+
 TEST_CASE("Bignum", "[BIGNUM]") {
   bignum<64> one = { 0x00, 0x80000001 };
   bignum<64> two = { 0x0, 0x80000002 };
@@ -24,3 +26,6 @@ TEST_CASE("Naive reduce", "[BIGNUM]") {
   auto rr2 = r2.naive_reduce(p);
   REQUIRE(rr2 == rr12);
 }
+
+}
+

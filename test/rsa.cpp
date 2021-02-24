@@ -1,6 +1,8 @@
 #include <caligo/rsa.h>
 #include <catch/catch.hpp>
 
+namespace Caligo {
+
 TEST_CASE("RSA 32-bit encrypt/decrypt", "[RSA]") {
   bignum<32> p = 63863;
   bignum<32> q = 65413;
@@ -153,4 +155,5 @@ TEST_CASE("RSA 2048 bit encrypt/decrypt", "[RSA]") {
   CHECK(pt == k);
 }
 
+}
 

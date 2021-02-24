@@ -6,6 +6,8 @@
 #include <cstring>
 #include "caligo/key_iv_pair.h"
 
+namespace Caligo {
+
 template <typename Cipher>
 struct GCM {
   GCM(key_iv_pair<Cipher> key_iv) 
@@ -135,4 +137,6 @@ struct GCM {
   uint64_t message_counter = 0;
   std::vector<uint8_t> iv;
 };
+
+}
 

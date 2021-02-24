@@ -3,6 +3,8 @@
 #include <map>
 #include <vector>
 
+namespace Caligo {
+
 TEST_CASE("Random values are not obviously wrong", "[RANDOM]") {
   // This case handles, for example, the Ryzen 2000 series bug where RDRAND always returned 0 after suspend/resume.
   std::map<uint64_t, int> values;
@@ -27,6 +29,8 @@ TEST_CASE("API offers 4 variants to generate data into a vector", "[RANDOM]") {
   generate_random(d32);
   d64.resize(1048576);
   generate_random(d64);
+}
+
 }
 
 

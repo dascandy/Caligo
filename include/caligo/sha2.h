@@ -5,6 +5,8 @@
 #include <vector>
 #include <span>
 
+namespace Caligo {
+
 template <size_t bits>
 struct SHA2;
 
@@ -83,4 +85,5 @@ struct SHA2<384> : private SHA2<512> {
   }
 };
 
+}
 

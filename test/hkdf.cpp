@@ -2,6 +2,8 @@
 #include <caligo/hkdf.h>
 #include <caligo/sha2.h>
 
+namespace Caligo {
+
 struct MyCipher {
   static constexpr size_t size = 16;
   static constexpr size_t ivsize = 12;
@@ -86,6 +88,5 @@ TEST_CASE("hkdf finished calculation (Client)", "[HKDF]") {
   REQUIRE(hash == digest);
 }
 
-
-
+}
 

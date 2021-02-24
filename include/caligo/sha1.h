@@ -5,6 +5,8 @@
 #include <vector>
 #include <span>
 
+namespace Caligo {
+
 struct SHA1 {
   static constexpr size_t hashsize = 20;
   SHA1();
@@ -28,4 +30,5 @@ private:
   size_t msglength = 0;
 };
 
+}
 

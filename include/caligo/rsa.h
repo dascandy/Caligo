@@ -81,8 +81,6 @@ std::vector<uint8_t> generatePssData(std::span<const uint8_t> data, std::span<co
   return dbmask;
 }
 
-}
-
 template <size_t N = 2048>
 struct rsa_public_key {
   MontgomeryState<N> s;
@@ -169,4 +167,5 @@ struct rsa_private_key {
   }
 };
 
+}
 

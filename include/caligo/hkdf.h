@@ -5,6 +5,8 @@
 #include <string>
 #include "caligo/key_iv_pair.h"
 
+namespace Caligo {
+
 template <typename Hash>
 std::vector<uint8_t> HMAC(std::vector<uint8_t> text, std::vector<uint8_t> key) {
   key.resize(Hash::hashsize*2);
@@ -96,4 +98,5 @@ std::vector<uint8_t> resumption_master(secret<Hash>& h, std::vector<uint8_t> has
   return HKDF_Expand_Label(h.data, "res master", hash, 32);
 }
 
+}
 

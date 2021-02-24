@@ -1,6 +1,8 @@
 #include <catch/catch.hpp>
 #include <caligo/x25519.h>
 
+namespace Caligo {
+
 TEST_CASE("basic addition tests", "[X25519]") {
   // Basic addition
   ec_value one = { 0, 0, 0, 0, 0, 0, 0, 1 };
@@ -253,5 +255,7 @@ TEST_CASE("x25519 DH example", "[X25519]") {
   CHECK(calc_pub_b == pub_b);
   CHECK(key_b_a == key_a_b);
   CHECK(key == key_a_b);
+}
+
 }
 

@@ -7,6 +7,8 @@
 #include <iostream>
 #include <caligo/random.h>
 
+namespace Caligo {
+
 template <size_t Bits>
 struct bignum {
   static constexpr size_t N = (Bits + 31) / 32;
@@ -243,8 +245,10 @@ struct bignum {
   }
 };
 
+}
+
 template <size_t N>
-std::ostream& operator<<(std::ostream& os, const bignum<N>& bn) {
+std::ostream& operator<<(std::ostream& os, const Caligo::bignum<N>& bn) {
   os << to_string(bn);
   return os;
 }

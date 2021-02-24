@@ -2,6 +2,8 @@
 
 #include <x86intrin.h>
 
+namespace Caligo {
+
 inline __m128i reflect(__m128i v) {
   static const __m128i x0 = _mm_setr_epi32(0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0), 
                        y0 = _mm_setr_epi32(0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F);
@@ -32,5 +34,7 @@ inline __m128i galoisMultiply(__m128i a, __m128i b) {
 
 inline __m128i ghash_block(__m128i x, __m128i h, __m128i hash) {
   return galoisMultiply(hash ^ x, h);
+}
+
 }
 

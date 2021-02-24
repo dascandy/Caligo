@@ -1,6 +1,8 @@
 #include "caligo/sha1.h"
 #include <cstdio>
 
+namespace Caligo {
+
 SHA1::SHA1() {
   h[0] = 0x67452301;
   h[1] = 0xefcdab89;
@@ -90,4 +92,6 @@ void SHA1::processChunk() {
   }
   h[0] += a; h[1] += b; h[2] += c; h[3] += d; h[4] += e;
 }
+}
+
 

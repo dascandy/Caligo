@@ -1,6 +1,8 @@
 #include "caligo/sha2.h"
 #include <cstdio>
 
+namespace Caligo {
+
 SHA2<256>::SHA2() {
   w[0] = 0x6a09e667;
   w[1] = 0xbb67ae85;
@@ -238,4 +240,5 @@ void SHA2<384>::sha384_override() {
   w[7] = 0x47b5481dbefa4fa4;
 }
 
+}
 

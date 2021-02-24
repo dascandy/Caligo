@@ -4,7 +4,16 @@
 #include <cstdint>
 #include <span>
 
+namespace Caligo {
+
+extern std::vector<uint64_t> testValues;
+
 inline uint64_t generate_random_value() {
+  if (!testValues.empty()) {
+    uint64_t value = testValues.back();
+    testValues.pop_back();
+    return value;
+  }
   // LCG, using only the major 32 bits to have high enough entropy in those. Still a PRNG.
   static const uint64_t A = 6364136223846793005;
   static const uint64_t C = 1442695040888963407;
@@ -63,4 +72,4 @@ inline void generate_random(std::span<uint8_t> target) {
   }
 }
 
-
+}

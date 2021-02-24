@@ -2,6 +2,8 @@
 #include <caligo/mont.h>
 #include <caligo/x25519.h>
 
+namespace Caligo {
+
 bignum<256> polynomial = { 0x7FFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFED };
 MontgomeryState<256> s(polynomial);
 
@@ -98,4 +100,7 @@ TEST_CASE("Montgomery performance test", "[MONT]") {
   std::cout << "Speedup " << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << " vs " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << "\n";
 }
 */
+
+}
+
 

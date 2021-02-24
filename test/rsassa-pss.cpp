@@ -3,6 +3,8 @@
 #include <caligo/sha2.h>
 #include <catch/catch.hpp>
 
+namespace Caligo {
+
 template <size_t Bits, typename Hash>
 void test_pss(std::span<const uint8_t> n, 
               std::span<const uint8_t> e,
@@ -102,5 +104,6 @@ TEST_CASE("RSA PSS signature", "[RSA]") {
       test_pss<4096, SHA2<512>>(n, e, d, salt, msg, s);
     }
   }
+}
 }
 

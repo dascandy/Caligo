@@ -1,5 +1,6 @@
 #include <caligo/base64.h>
 
+namespace Caligo {
 // multiple entries for 62/63 to handle differing variants
 // they do not conflict in the decoding
 static constexpr int8_t valueOf[256] = {
@@ -97,4 +98,5 @@ std::vector<uint8_t> base64d(std::string_view str) {
   return out;
 }
 
+}
 
