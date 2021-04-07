@@ -217,8 +217,8 @@ struct bignum {
     }
     return result == 0;
   }
-  constexpr bool operator<(const bignum& rhs) {
-    return sub(rhs.v);
+  constexpr bool operator<(const bignum& rhs) const {
+    return bignum(*this).sub(rhs.v);
   }
   friend constexpr void ctime_swap(bool doswap, bignum& a, bignum& b) {
     bignum ones;
