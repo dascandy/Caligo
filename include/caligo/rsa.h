@@ -161,7 +161,7 @@ struct rsa_private_key {
     pssData[0] &= 0x7F;
     std::reverse(pssData.begin(), pssData.end());
     std::vector<uint8_t> signature = rsadp(bignum<N>(pssData)).as_bytes();
-    while (signature[signature.size() - 1] == 0 && (signature[signature.size() - 2] & 0x80) == 0x00) signature.pop_back();
+    signature.resize(actualN / 8);
     std::reverse(signature.begin(), signature.end());
     return signature;
   }
