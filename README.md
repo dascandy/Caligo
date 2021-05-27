@@ -4,7 +4,6 @@ Caligo is a C++ library that implements various cryptographic primitives in a C+
 
 License: BSD-2-Clause
 
-
 ## Installation
 
 Retrieve the repository and build it with an Evoke-compatible build tool. For tests, it uses Catch, while for benchmarking it uses Google benchmark. 
