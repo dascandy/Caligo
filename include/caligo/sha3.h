@@ -18,6 +18,10 @@ struct SHA3 {
   {
     add(data);
   }
+  inline SHA3(std::string_view str)
+  : SHA3(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
+  {
+  } 
   void add(std::span<const uint8_t> data);
   operator std::vector<uint8_t>() const;
   operator std::string() const;

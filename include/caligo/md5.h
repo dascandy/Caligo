@@ -11,6 +11,10 @@ namespace Caligo {
 struct MD5 {
   static constexpr size_t hashsize = 16;
   MD5();
+  inline MD5(std::string_view str)
+  : MD5(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
+  {
+  }
   inline MD5(std::span<const uint8_t> data)
   : MD5()
   {

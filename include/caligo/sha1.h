@@ -11,6 +11,10 @@ namespace Caligo {
 struct SHA1 {
   static constexpr size_t hashsize = 20;
   SHA1();
+  inline SHA1(std::string_view str)
+  : SHA1(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
+  { 
+  }
   inline SHA1(std::span<const uint8_t> data)
   : SHA1()
   {

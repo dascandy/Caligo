@@ -20,6 +20,10 @@ struct SHA2<256> {
   {
     add(data);
   }
+  inline SHA2(std::string_view str)
+  : SHA2(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
+  {
+  }
   void add(std::span<const uint8_t> data);
   operator std::vector<uint8_t>() const;
   operator std::string() const;
@@ -45,6 +49,10 @@ struct SHA2<512> {
   {
     add(data);
   }
+  inline SHA2(std::string_view str)
+  : SHA2(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
+  {
+  } 
   void add(std::span<const uint8_t> data);
   operator std::vector<uint8_t>() const; 
   operator std::string() const;
@@ -73,6 +81,10 @@ struct SHA2<384> : private SHA2<512> {
     sha384_override();
     add(data);
   }
+  inline SHA2(std::string_view str)
+  : SHA2(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
+  {
+  } 
   void sha384_override();
   inline operator std::vector<uint8_t>() const {
     std::vector<uint8_t> hash = *((SHA2<512>*)this);
