@@ -1,4 +1,4 @@
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 #include <caligo/hkdf.h>
 #include <caligo/sha2.h>
 

@@ -1,4 +1,4 @@
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 #include <caligo/mont.h>
 #include <caligo/x25519.h>
 

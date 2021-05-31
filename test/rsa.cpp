@@ -1,5 +1,5 @@
 #include <caligo/rsa.h>
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 
 namespace Caligo {
 
