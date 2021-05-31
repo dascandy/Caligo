@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <span>
+#include <string>
 
 namespace Caligo {
 
@@ -17,6 +18,7 @@ struct MD5 {
   }
   void add(std::span<const uint8_t> data);
   operator std::vector<uint8_t>() const;
+  operator std::string() const;
   static size_t MaxLength() {
     return (1ULL << 61) - 1;
   }

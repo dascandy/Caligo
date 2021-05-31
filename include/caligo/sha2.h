@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <span>
+#include <string>
 
 namespace Caligo {
 
@@ -21,6 +22,7 @@ struct SHA2<256> {
   }
   void add(std::span<const uint8_t> data);
   operator std::vector<uint8_t>() const;
+  operator std::string() const;
   static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20 };
   }
@@ -45,6 +47,7 @@ struct SHA2<512> {
   }
   void add(std::span<const uint8_t> data);
   operator std::vector<uint8_t>() const; 
+  operator std::string() const;
   static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x51, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05, 0x00, 0x04, 0x40 };
   }
@@ -76,6 +79,7 @@ struct SHA2<384> : private SHA2<512> {
     hash.resize(hashsize);
     return hash;
   }
+  operator std::string() const;
   using SHA2<512>::add;
   static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x41, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x02, 0x05, 0x00, 0x04, 0x30 };

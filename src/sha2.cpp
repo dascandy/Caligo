@@ -107,6 +107,16 @@ SHA2<256>::operator std::vector<uint8_t>() const {
   return output;
 }
 
+SHA2<256>::operator std::string() const {
+  static const char hextab[] = "0123456789abcdef";
+  std::string str;
+  for (const auto& c : std::vector<uint8_t>(*this)) {
+    str.push_back(hextab[c >> 4]);
+    str.push_back(hextab[c & 0xF]);
+  }
+  return str;
+}
+
 SHA2<512>::SHA2() {
   w[0] = 0x6a09e667f3bcc908;
   w[1] = 0xbb67ae8584caa73b;
@@ -227,6 +237,26 @@ SHA2<512>::operator std::vector<uint8_t>() const {
     }
   }
   return output;
+}
+
+SHA2<512>::operator std::string() const {
+  static const char hextab[] = "0123456789abcdef";
+  std::string str;
+  for (const auto& c : std::vector<uint8_t>(*this)) {
+    str.push_back(hextab[c >> 4]);
+    str.push_back(hextab[c & 0xF]);
+  }
+  return str;
+}
+
+SHA2<384>::operator std::string() const {
+  static const char hextab[] = "0123456789abcdef";
+  std::string str;
+  for (const auto& c : std::vector<uint8_t>(*this)) {
+    str.push_back(hextab[c >> 4]);
+    str.push_back(hextab[c & 0xF]);
+  }
+  return str;
 }
 
 void SHA2<384>::sha384_override() {

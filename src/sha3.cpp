@@ -37,6 +37,17 @@ Caligo::SHA3<size>::operator std::vector<uint8_t>() const {
   }
   return rv;
 }
+template <size_t size>
+Caligo::SHA3<size>::operator std::string() const {
+  static const char hextab[] = "0123456789abcdef";
+  std::string str;
+  for (const auto& c : std::vector<uint8_t>(*this)) {
+    str.push_back(hextab[c >> 4]);
+    str.push_back(hextab[c & 0xF]);
+  }
+  return str;
+}
+
 
 template <size_t size>
 void Caligo::SHA3<size>::processChunk() {

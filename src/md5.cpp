@@ -82,6 +82,16 @@ MD5::operator std::vector<uint8_t>() const {
   return output;
 }
 
+MD5::operator std::string() const {
+  static const char hextab[] = "0123456789abcdef";
+  std::string str;
+  for (const auto& c : std::vector<uint8_t>(*this)) {
+    str.push_back(hextab[c >> 4]);
+    str.push_back(hextab[c & 0xF]);
+  }
+  return str;
+}
+
 static uint32_t rotate(uint32_t value, int left) {
   return (value << left) ^ (value >> (32 - left)); 
 }
