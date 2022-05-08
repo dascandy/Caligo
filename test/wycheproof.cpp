@@ -36,7 +36,6 @@ static std::vector<uint8_t> fromHex(std::string str) {
 
 template <size_t bits>
 static void test_aes(std::vector<uint8_t> key, std::vector<uint8_t> iv, std::vector<uint8_t> plaintext, std::vector<uint8_t> ciphertext, std::vector<uint8_t> aad, std::vector<uint8_t> tag_v, std::string expectedResult) {
-  (void)key; (void)iv; (void)plaintext; (void)ciphertext; (void)aad; (void)tag_v; (void)expectedResult;
   std::array<uint8_t, 16> tag;
   std::copy_n(tag_v.begin(), 16, tag.begin());
   auto [c_data, tag_data] = GCM<AES<bits>>({key, iv}).Encrypt(plaintext, aad);
@@ -100,7 +99,7 @@ std::map<std::string, std::function<bool(nlohmann::json, nlohmann::json)>> testC
 
 TEST_CASE("wycheproof test suites", "[wycheproof]") {
   std::map<std::string, size_t> testsSkipped;
-  for (auto& entry : std::filesystem::directory_iterator("test/wycheproof")) {
+  for (auto& entry : std::filesystem::directory_iterator("wycheproof/testvectors")) {
     if (not entry.is_regular_file()) continue;
     nlohmann::json j;
     try {
