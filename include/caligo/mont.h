@@ -6,7 +6,7 @@ namespace Caligo {
 template <size_t N>
 inline auto RecursiveInverseModPower2(bignum<N> A) {
   if constexpr (bignum<N>::multiword) {
-    bignum<N> r = RecursiveInverseModPower2(A.template slice<(N+1)/2>(0));
+    bignum<N> r = RecursiveInverseModPower2(A.template slice<(((N/32)+1)/2)*32>(0));
     bignum<N> rv = r * (2 - (r * A).template slice<N>(0)).second;
     return rv;
   } else {
@@ -42,7 +42,8 @@ struct MontgomeryState {
     R3MN = REDC(R2MN * R2MN);
   }
   bignum<K> REDC(bignum<2*K> v) const {
-    bignum<K> m = (v.template slice<K>(0) * Ninv).template slice<K>(0);
+    bignum<2*K> vninv = (v.template slice<K>(0) * Ninv);
+    bignum<K> m = vninv.template slice<K>(0);
     auto mn = m * N;
     auto vmn = v + mn;
     bignum<K> t = vmn.second.template slice<K>(K);

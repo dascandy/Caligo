@@ -109,7 +109,7 @@ struct bignum {
   template <size_t K>
   constexpr bignum<K> slice(size_t start) {
     bignum<K> rv;
-    for (size_t n = 0; n < K/32; n++) {
+    for (size_t n = 0; n*32 < K; n++) {
       rv.v[n] = v[n+start/32];
     }
     return rv;
@@ -238,9 +238,10 @@ struct bignum {
     buffer[strlen(buffer)-1] = 0;
     return buffer;
   }
-  static bignum<N> random() {
-    bignum<N> n;
-    generate_random(std::span<uint32_t>(n.v));
+  static bignum<Bits> random() {
+    bignum<Bits> n;
+    std::span<uint32_t> bits(n.v);
+    generate_random(bits);
     return n;
   }
 };

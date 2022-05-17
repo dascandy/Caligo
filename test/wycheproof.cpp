@@ -4,6 +4,7 @@
 #include <fstream>
 #include <caligo/gcm.h>
 #include <caligo/aes.h>
+#include <caligo/random_prime.h>
 
 namespace Caligo {
 
@@ -53,10 +54,10 @@ static void test_aes(std::vector<uint8_t> key, std::vector<uint8_t> iv, std::vec
     CHECK(is_valid);
   }
 }
-    
+ 
 std::map<std::string, std::function<bool(nlohmann::json, nlohmann::json)>> testCaseHandler = {
   { "AES-GCM", [](nlohmann::json suite, nlohmann::json test) {
-    if (suite["tagSize"] != 128 || suite["ivSize"] != 96) {
+    if (suite["tagSize"] != 128) {
       return false;
     } else if (suite["keySize"] == 128) {
       test_aes<128>(fromHex(test["key"]), fromHex(test["iv"]), fromHex(test["msg"]), fromHex(test["ct"]), fromHex(test["aad"]), fromHex(test["tag"]), test["result"]);
@@ -68,6 +69,40 @@ std::map<std::string, std::function<bool(nlohmann::json, nlohmann::json)>> testC
       return false;
     }
   } },
+  { "PrimalityTest", [](nlohmann::json suite, nlohmann::json test) {
+    (void)suite;
+    auto value = fromHex(test["value"]);
+
+    // big endian idiots
+    std::reverse(value.begin(), value.end());
+    bool isPrime;
+    fprintf(stderr, "prim test %d: %s\n", int(test["tcId"]), std::string(test["comment"]).c_str());
+    if (value.size() <= 32) {
+      isPrime = Caligo::miller_rabin_is_probably_prime<256>(std::span<const uint8_t>(value));
+    } else if (value.size() <= 128) {
+      isPrime = Caligo::miller_rabin_is_probably_prime<1024>(std::span<const uint8_t>(value));
+    } else {
+      isPrime = Caligo::miller_rabin_is_probably_prime<3072>(std::span<const uint8_t>(value));
+    }
+    if (test["result"] == "valid") {
+      CHECK(isPrime);
+    } else if (test["result"] == "invalid") {
+      CHECK(not isPrime);
+    }
+    fprintf(stderr, "prim test %d done\n", int(test["tcId"]));
+    return true;
+  }},
+  { "ECDH", [](nlohmann::json suite, nlohmann::json test) { (void)suite; (void)test; return false; }},
+  { "HKDF-SHA-1", [](nlohmann::json suite, nlohmann::json test) { (void)suite; (void)test; return false; }},
+  { "HKDF-SHA-256", [](nlohmann::json suite, nlohmann::json test) { (void)suite; (void)test; return false; }},
+  { "HKDF-SHA-384", [](nlohmann::json suite, nlohmann::json test) { (void)suite; (void)test; return false; }},
+  { "HKDF-SHA-512", [](nlohmann::json suite, nlohmann::json test) { (void)suite; (void)test; return false; }},
+  { "RSAES-PKCS1-v1_5", [](nlohmann::json suite, nlohmann::json test) { (void)suite; (void)test; return false; }},
+  { "RSASSA-PKCS1-v1_5", [](nlohmann::json suite, nlohmann::json test) { (void)suite; (void)test; return false; }},
+  { "RSASSA-PSS", [](nlohmann::json suite, nlohmann::json test) { (void)suite; (void)test; return false; }},
+//  { "ECDSA", [](nlohmann::json suite, nlohmann::json test) { return false; }},
+//  { "EDDSA", [](nlohmann::json suite, nlohmann::json test) { return false; }},
+//  { "CHACHA20-POLY1305", [](nlohmann::json suite, nlohmann::json test) { return false; }},
 };
 
 /*
@@ -76,25 +111,6 @@ std::map<std::string, std::function<bool(nlohmann::json, nlohmann::json)>> testC
 "HKDF-SHA-256", "HKDF-SHA-384", "HKDF-SHA-512", "HMACSHA1", "HMACSHA224", "HMACSHA256", "HMACSHA3-224", "HMACSHA3-256",
 "HMACSHA3-384", "HMACSHA3-512", "HMACSHA384", "HMACSHA512", "KW", "KWP", "PrimalityTest", "RSAES-OAEP", 
 "RSAES-PKCS1-v1_5", "RSASSA-PKCS1-v1_5", "RSASSA-PSS", "VMAC-AES", "XCHACHA20-POLY1305", "XDH",
-{
-  "algorithm" : "ECDSA",
-  "generatorVersion" : "0.8r12",
-  "numberOfTests" : 1575,
-  "header" : [
-    "Test vectors of type EcdsaVerify are meant for the verification",
-    "of ASN encoded ECDSA signatures."
-  ],
-  "notes" : {
-    "BER" : "This is a signature with correct values for (r, s) but using some alternative BER encoding instead of DER encoding. Implementations should not accept such signatures to limit signature malleability.",
-    "EdgeCase" : "Edge case values such as r=1 and s=0 can lead to forgeries if the ECDSA implementation does not check boundaries and computes s^(-1)==0.",
-    "GroupIsomorphism" : "Some EC groups have isomorphic groups that allow an efficient implementation. This is a test vector that contains values that are edge cases on such an isomorphic group.",
-    "MissingZero" : "Some implementations of ECDSA and DSA incorrectly encode r and s by not including leading zeros in the ASN encoding of integers when necessary. Hence, some implementations (e.g. jdk) allow signatures with incorrect ASN encodings assuming that the signature is otherwise valid.",
-    "PointDuplication" : "Some implementations of ECDSA do not handle duplication and points at infinity correctly. This is a test vector that has been specially crafted to check for such an omission.",
-    "WeakHash" : "The security strength of the hash function used in this signature is weaker than the strength of the EC parameters. Such choices are disallowed in FIPS PUB 186-4 Section 6.1.1. However, it is unclear whether a library should reject such parameter choices."
-  },
-  "schema" : "ecdsa_verify_schema.json",
-  "testGroups" : [
-    {
 */
 
 TEST_CASE("wycheproof test suites", "[wycheproof]") {

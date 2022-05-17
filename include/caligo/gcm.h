@@ -14,13 +14,14 @@ struct GCM {
   : sched(key_iv.key)
   , iv(key_iv.iv)
   {
-    if (iv.size() != Cipher::size - 4) {
-      auto reduced_iv = ghash({}, iv);
-      iv.resize(16);
-      copy_n(reduced_iv.begin(), 16, iv.begin());
-    }
-
     h = reflect(Cipher::Encrypt(sched, {0,0}));
+
+    if (iv.size() == 8 ||
+        iv.size() > Cipher::size - 4) {
+      auto reduced_iv = ghash(iv, {});
+      iv.resize(16);
+      std::copy_n(reduced_iv.begin(), 16, iv.begin());
+    }
   }
   void ctr_inc(std::array<uint8_t, Cipher::size>& ctr) {
     ctr[15]++;
@@ -78,6 +79,7 @@ struct GCM {
     return calc_tag;
   }
   std::pair<std::vector<uint8_t>, bool> Decrypt(const std::span<const uint8_t> ciphertext, const std::span<const uint8_t> aad, std::array<uint8_t, 16> tag) {
+    if (iv.size() < Cipher::size - 4) return {{}, false};
     std::array<uint8_t, Cipher::size> ctr = {};
     memcpy(ctr.data(), iv.data(), iv.size());
     ctr[4] ^= ((message_counter >> 56) & 0xFF);
@@ -88,7 +90,10 @@ struct GCM {
     ctr[9] ^= ((message_counter >> 16) & 0xFF);
     ctr[10] ^= ((message_counter >> 8) & 0xFF);
     ctr[11] ^= ((message_counter >> 0) & 0xFF);
-    ctr_inc(ctr);
+    if (iv.size() == 12) {
+      ctr[12] = ctr[13] = ctr[14] = 0;
+      ctr[15] = 1;
+    }
     z = reflect(Cipher::Encrypt(sched, _mm_loadu_si128((__m128i*)ctr.data())));
     message_counter++;
 
@@ -108,6 +113,7 @@ struct GCM {
     return {std::move(plaintext), iv.size() >= 8 && calc_tag == tag};
   }
   std::pair<std::vector<uint8_t>, std::array<uint8_t, 16>> Encrypt(const std::span<const uint8_t> plaintext, const std::span<const uint8_t> aad) {
+    if (iv.size() < Cipher::size - 4) return {{}, {}};
     std::array<uint8_t, Cipher::size> ctr = {};
     memcpy(ctr.data(), iv.data(), iv.size());
     ctr[4] ^= ((message_counter >> 56) & 0xFF);
@@ -118,7 +124,10 @@ struct GCM {
     ctr[9] ^= ((message_counter >> 16) & 0xFF);
     ctr[10] ^= ((message_counter >> 8) & 0xFF);
     ctr[11] ^= ((message_counter >> 0) & 0xFF);
-    ctr_inc(ctr);
+    if (iv.size() == 12) {
+      ctr[12] = ctr[13] = ctr[14] = 0;
+      ctr[15] = 1;
+    }
     z = reflect(Cipher::Encrypt(sched, _mm_loadu_si128((__m128i*)ctr.data())));
     message_counter++;
 
