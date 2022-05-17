@@ -21,8 +21,6 @@ bool miller_rabin_one_loop(MontgomeryState<N> state, MontgomeryValue<N> d, uint6
       return true;
     }
   }
-  if (logDetails)
-    printf("Invalidated by %zu\n", a);
 
   return false;
 }
