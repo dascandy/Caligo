@@ -23,7 +23,7 @@ TEST_CASE("the most egregious failures from wycheproof", "[PRIME]") {
   CHECK(miller_rabin_is_probably_prime(bignum<32>(251)));
   CHECK(miller_rabin_is_probably_prime(bignum<32>(257)));
 }
-/*
+
 TEST_CASE("generate random tiny primes", "[PRIME]") {
   std::vector<bignum<32>> nums;
   for (size_t n = 0; n < 2000; n++) {
@@ -49,12 +49,6 @@ TEST_CASE("generate random medium primes", "[PRIME]") {
     }
   }
 }
-
-TEST_CASE("generate random large primes", "[PRIME]") {
-  bignum<2048> p = random_prime<2048>();
-  (void)p;
-}
-*/
 
 }
 
