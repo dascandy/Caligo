@@ -98,11 +98,7 @@ struct rsa_public_key {
 
   bignum<N> rsaep(bignum<N> m) const {
     if (e == bignum<N>(65537)) {
-      bignum<N> z = m;
-      for (size_t x = 0; x < 16; x++) {
-        z = (z * z).naive_reduce(n);
-      }
-      return (z * m).naive_reduce(n);
+      return MontgomeryValue<N>(s, m).exp(65537);
     } else {
       return MontgomeryValue<N>(s, m).exp(e);
     }
