@@ -1,6 +1,7 @@
 #include <benchmark/benchmark.h>
 #include "caligo/rsa.h"
 #include "caligo/aes.h"
+#include "caligo/gcm.h"
 #include <x86intrin.h>
 
 static void RSA_RSAEP_2048(benchmark::State& state) {
@@ -114,160 +115,156 @@ static void RSA_RSAEP_2048_fastpath(benchmark::State& state) {
   }
 }
 
-template <size_t N = 2048>
-Caligo::bignum<N> rsaep_FP(Caligo::rsa_public_key<N> key, Caligo::bignum<N> m) {
-  return Caligo::MontgomeryValue<N>(key.s, m).exp(65537);
-}
-
-static void RSA_RSAEP_2048_fastpath_mont(benchmark::State& state) {
-  Caligo::bignum<2048> n = {
-    0xd9a098da, 0x000ac58e, 0xfb7d6c98, 0x9b746844, 0x4d369d98, 0x65eec869, 0x6a4bc54e, 0xf47f4d04,
-    0xbb5fb531, 0x134d9edc, 0x1254c966, 0x5f96462c, 0x190a1c47, 0xccf970b3, 0xa00a922a, 0x37e5ceb5,
-    0x48ad638c, 0x425ee963, 0x10db234a, 0x97ed0434, 0x2de813b5, 0xb6a4eb1a, 0xce5fef5b, 0x0c22e233,
-    0x0e4f285a, 0x76fb3d95, 0x5ef13df1, 0xe2288c7e, 0x8974220f, 0x773b4360, 0x29e5a8b0, 0x3f7c9d1c,
-    0x8743ad2e, 0x6edab660, 0x4fae2122, 0x44039c0b, 0xc2dffe1f, 0xb8a37fa8, 0xb935fb31, 0x4764c76f,
-    0x5aba87e9, 0xd5466ec4, 0x13ce3a72, 0xaf0eebd0, 0xb483f2c2, 0x98b35248, 0x538823d5, 0x27f40e22,
-    0x1557c8b2, 0x5257a131, 0xadc7f81a, 0xdf9b481c, 0x8c244053, 0x56ea4200, 0x9676bd66, 0x06e7fede,
-    0x6b76a6a2, 0x64a97507, 0xf15f0f12, 0xdec9d7bd, 0x473af9e0, 0xae86399c, 0xf1f2d402, 0x1f13325d,
-  };
-  Caligo::bignum<2048> e = 65537;
-  Caligo::bignum<2048> k = {
-    0x4d252235, 0x7254b309, 0xb5239d33, 0x50d5c0c4, 0xd3b2f196, 0x7e17da27, 0x450b12a4, 0x70c5283f,
-    0x10b7a2c3, 0x3ea10081, 0x66481245, 0xbcb2480c, 0xcd4ac015, 0x5a82435e, 0xa44a2cdc, 0x92e545b3,
-    0x4ecd1ae8, 0x7c5d6fb1, 0xaaba9ea1, 0x5053edf2, 0x3f82c391, 0x8d9ec313, 0x3a52ba80, 0x76df5c91,
-    0x8d166c90, 0xa605d175, 0x5b205d7e, 0x994103f8, 0xb1b9afc1, 0x6e6b274e, 0x2a0043e0, 0xad54186c,
-    0x95a72569, 0x10f6e7ad, 0xfa885fd4, 0xc67b1edc, 0x63e83e85, 0xf8992e42, 0x39319b18, 0xbe859203,
-    0x0b79f4ac, 0x9e16a465, 0x0d9d7675, 0xa4f45640, 0x18ab85c0, 0xdb5790e4, 0x78df656f, 0x886dc461,
-    0xbc33c9ff, 0x32a0fd75, 0xa73a1c66, 0x26934c28, 0xc923a1c1, 0xefe80d59, 0xfb2efeb6, 0xaae82c0f,
-    0xc8cbfbf3, 0x06eda799, 0xe0c2a3ef, 0xb3c60915, 0x6b2715f2, 0x8c00ff58, 0x075e34ed, 0x5d327ce0,
-  };
-
-  Caligo::rsa_public_key<2048> key(n, e);
-
-  // Perform setup here
-  for (auto _ : state) {
-    k = rsaep_FP(key, k);
+template <size_t N>
+static Caligo::key_iv_pair<Caligo::AES<N>>& getKey() {
+  if constexpr (N == 128) {
+    static Caligo::key_iv_pair<Caligo::AES<N>> key{
+      { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f },
+      { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b }
+    };
+    return key;
+  } else {
+    static Caligo::key_iv_pair<Caligo::AES<N>> key{
+      { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f },
+      { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b }
+    };
+    return key;
   }
 }
 
-static void AES_128_2K_NOKS(benchmark::State& state) {
-  Caligo::AesKeySchedule<128> s128(std::array<uint8_t, 16>{
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
-  });
+template <size_t N, size_t blocks>
+static void AES_CTR_Bench(benchmark::State& state) {
+  char ctr[16] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x00, 0x00, 0x00, 0x01 };
+  char inbuffer[blocks * 16];
+  char outbuffer[blocks * 16];
 
-  // Perform setup here
   for (auto _ : state) {
-    char inbuffer[1024];
-    char outbuffer[1024];
-    for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer + n)));
-    }
-    for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)inbuffer + n, Caligo::AesEncrypt(s128, _mm_loadu_si128((__m128i*)outbuffer + n)));
-    }
-    benchmark::DoNotOptimize(inbuffer);
-    benchmark::ClobberMemory();
-  }
-}
+    Caligo::AesKeySchedule<N> s(getKey<N>().key);
 
-static void AES_256_2K_NOKS(benchmark::State& state) {
-  Caligo::AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
-  });
-
-  // Perform setup here
-  for (auto _ : state) {
-    char inbuffer[1024];
-    char outbuffer[1024];
-    for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer + n)));
-    }
-    for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)inbuffer + n, Caligo::AesEncrypt(s256, _mm_loadu_si128((__m128i*)outbuffer + n)));
-    }
-    benchmark::DoNotOptimize(inbuffer);
-    benchmark::ClobberMemory();
-  }
-}
-
-static void AES_128_1KB(benchmark::State& state) {
-  // Perform setup here
-  for (auto _ : state) {
-    Caligo::AesKeySchedule<128> s128(std::array<uint8_t, 16>{
-      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
-    });
-
-    char inbuffer[1024];
-    char outbuffer[1024];
-    for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer + n)));
+    __m128i counter = _mm_loadu_si128((__m128i*)ctr);
+    for (size_t n = 0; n < blocks; n++) {
+      _mm_storeu_si128((__m128i*)outbuffer + n, _mm_loadu_si128((__m128i*)inbuffer + n) ^ Caligo::AesEncrypt(s, counter));
+      ++counter[1];
     }
     benchmark::DoNotOptimize(outbuffer);
     benchmark::ClobberMemory();
   }
 }
 
-static void AES_256_1KB(benchmark::State& state) {
-  // Perform setup here
-  for (auto _ : state) {
-    Caligo::AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
-      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
-    });
+template <size_t N, size_t blocks>
+static void AES_Bench(benchmark::State& state) {
+  char inbuffer[blocks * 16];
+  char outbuffer[blocks * 16];
 
-    char inbuffer[1024];
-    char outbuffer[1024];
-    for (size_t n = 0; n < 64; n++) {
-      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer + n)));
+  for (auto _ : state) {
+    Caligo::AesKeySchedule<N> s(getKey<N>().key);
+
+    for (size_t n = 0; n < blocks; n++) {
+      _mm_storeu_si128((__m128i*)outbuffer + n, Caligo::AesEncrypt(s, _mm_loadu_si128((__m128i*)inbuffer + n)));
     }
     benchmark::DoNotOptimize(outbuffer);
     benchmark::ClobberMemory();
   }
 }
 
-static void AES_128_16(benchmark::State& state) {
-  // Perform setup here
-  for (auto _ : state) {
-    Caligo::AesKeySchedule<128> s128(std::array<uint8_t, 16>{
-      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f 
-    });
+template <size_t N, size_t blocks>
+static void AES_GCM_Bench(benchmark::State& state) {
+  Caligo::GCM<Caligo::AES<N>> gcm(getKey<N>());
+  
+  uint8_t inbuffer[blocks * 16];
 
-    char inbuffer[16];
-    char outbuffer[16];
-    _mm_storeu_si128((__m128i*)outbuffer, Caligo::AesEncrypt(s128, _mm_loadu_si128((__m128i*)inbuffer)));
-    benchmark::DoNotOptimize(outbuffer);
+  for (auto _ : state) {
+    auto rv = gcm.Encrypt(inbuffer, {});
+    benchmark::DoNotOptimize(rv);
     benchmark::ClobberMemory();
   }
 }
 
-static void AES_256_16(benchmark::State& state) {
-  // Perform setup here
-  for (auto _ : state) {
-    Caligo::AesKeySchedule<256> s256(std::array<uint8_t, 32>{ 
-      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-      0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f 
-    });
+static void AES_16KB_256(benchmark::State& state) { return AES_Bench<256, 1024>(state); }
+static void AES_16KB_128(benchmark::State& state) { return AES_Bench<128, 1024>(state); }
+static void AES_8KB_256(benchmark::State& state) { return AES_Bench<256, 512>(state); }
+static void AES_8KB_128(benchmark::State& state) { return AES_Bench<128, 512>(state); }
+static void AES_1KB_256(benchmark::State& state) { return AES_Bench<256, 64>(state); }
+static void AES_1KB_128(benchmark::State& state) { return AES_Bench<128, 64>(state); }
+static void AES_256_256(benchmark::State& state) { return AES_Bench<256, 16>(state); }
+static void AES_256_128(benchmark::State& state) { return AES_Bench<128, 16>(state); }
+static void AES_64_256(benchmark::State& state) { return AES_Bench<256, 4>(state); }
+static void AES_64_128(benchmark::State& state) { return AES_Bench<128, 4>(state); }
+static void AES_16_256(benchmark::State& state) { return AES_Bench<256, 1>(state); }
+static void AES_16_128(benchmark::State& state) { return AES_Bench<128, 1>(state); }
 
-    char inbuffer[16];
-    char outbuffer[16];
-    _mm_storeu_si128((__m128i*)outbuffer, Caligo::AesEncrypt(s256, _mm_loadu_si128((__m128i*)inbuffer)));
-    benchmark::DoNotOptimize(outbuffer);
-    benchmark::ClobberMemory();
-  }
-}
+static void AES_CTR_16KB_256(benchmark::State& state) { return AES_CTR_Bench<256, 1024>(state); }
+static void AES_CTR_16KB_128(benchmark::State& state) { return AES_CTR_Bench<128, 1024>(state); }
+static void AES_CTR_8KB_256(benchmark::State& state) { return AES_CTR_Bench<256, 512>(state); }
+static void AES_CTR_8KB_128(benchmark::State& state) { return AES_CTR_Bench<128, 512>(state); }
+static void AES_CTR_1KB_256(benchmark::State& state) { return AES_CTR_Bench<256, 64>(state); }
+static void AES_CTR_1KB_128(benchmark::State& state) { return AES_CTR_Bench<128, 64>(state); }
+static void AES_CTR_256_256(benchmark::State& state) { return AES_CTR_Bench<256, 16>(state); }
+static void AES_CTR_256_128(benchmark::State& state) { return AES_CTR_Bench<128, 16>(state); }
+static void AES_CTR_64_256(benchmark::State& state) { return AES_CTR_Bench<256, 4>(state); }
+static void AES_CTR_64_128(benchmark::State& state) { return AES_CTR_Bench<128, 4>(state); }
+static void AES_CTR_16_256(benchmark::State& state) { return AES_CTR_Bench<256, 1>(state); }
+static void AES_CTR_16_128(benchmark::State& state) { return AES_CTR_Bench<128, 1>(state); }
+
+static void AES_GCM_16KB_256(benchmark::State& state) { return AES_GCM_Bench<256, 1024>(state); }
+static void AES_GCM_16KB_128(benchmark::State& state) { return AES_GCM_Bench<128, 1024>(state); }
+static void AES_GCM_8KB_256(benchmark::State& state) { return AES_GCM_Bench<256, 512>(state); }
+static void AES_GCM_8KB_128(benchmark::State& state) { return AES_GCM_Bench<128, 512>(state); }
+static void AES_GCM_1KB_256(benchmark::State& state) { return AES_GCM_Bench<256, 64>(state); }
+static void AES_GCM_1KB_128(benchmark::State& state) { return AES_GCM_Bench<128, 64>(state); }
+static void AES_GCM_256_256(benchmark::State& state) { return AES_GCM_Bench<256, 16>(state); }
+static void AES_GCM_256_128(benchmark::State& state) { return AES_GCM_Bench<128, 16>(state); }
+static void AES_GCM_64_256(benchmark::State& state) { return AES_GCM_Bench<256, 4>(state); }
+static void AES_GCM_64_128(benchmark::State& state) { return AES_GCM_Bench<128, 4>(state); }
+static void AES_GCM_16_256(benchmark::State& state) { return AES_GCM_Bench<256, 1>(state); }
+static void AES_GCM_16_128(benchmark::State& state) { return AES_GCM_Bench<128, 1>(state); }
 
 // Register the function as a benchmark
 BENCHMARK(RSA_RSAEP_2048);
 BENCHMARK(RSA_RSAEP_2048_fastpath);
 BENCHMARK(RSA_RSADP_2048);
-BENCHMARK(RSA_RSAEP_2048_fastpath_mont);
-BENCHMARK(AES_256_2K_NOKS);
-BENCHMARK(AES_128_2K_NOKS);
-BENCHMARK(AES_256_1KB);
-BENCHMARK(AES_128_1KB);
-BENCHMARK(AES_256_16);
-BENCHMARK(AES_128_16);
+
+BENCHMARK(AES_16KB_256);
+BENCHMARK(AES_16KB_128);
+BENCHMARK(AES_8KB_256);
+BENCHMARK(AES_8KB_128);
+BENCHMARK(AES_1KB_256);
+BENCHMARK(AES_1KB_128);
+BENCHMARK(AES_256_256);
+BENCHMARK(AES_256_128);
+BENCHMARK(AES_64_256);
+BENCHMARK(AES_64_128);
+BENCHMARK(AES_16_256);
+BENCHMARK(AES_16_128);
+
+BENCHMARK(AES_CTR_16KB_256);
+BENCHMARK(AES_CTR_16KB_128);
+BENCHMARK(AES_CTR_8KB_256);
+BENCHMARK(AES_CTR_8KB_128);
+BENCHMARK(AES_CTR_1KB_256);
+BENCHMARK(AES_CTR_1KB_128);
+BENCHMARK(AES_CTR_256_256);
+BENCHMARK(AES_CTR_256_128);
+BENCHMARK(AES_CTR_64_256);
+BENCHMARK(AES_CTR_64_128);
+BENCHMARK(AES_CTR_16_256);
+BENCHMARK(AES_CTR_16_128);
+
+BENCHMARK(AES_GCM_16KB_256);
+BENCHMARK(AES_GCM_16KB_128);
+BENCHMARK(AES_GCM_8KB_256);
+BENCHMARK(AES_GCM_8KB_128);
+BENCHMARK(AES_GCM_1KB_256);
+BENCHMARK(AES_GCM_1KB_128);
+BENCHMARK(AES_GCM_256_256);
+BENCHMARK(AES_GCM_256_128);
+BENCHMARK(AES_GCM_64_256);
+BENCHMARK(AES_GCM_64_128);
+BENCHMARK(AES_GCM_16_256);
+BENCHMARK(AES_GCM_16_128);
 
 // Run the benchmark
 BENCHMARK_MAIN();
+
+
