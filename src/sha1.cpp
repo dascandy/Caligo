@@ -35,7 +35,7 @@ void SHA1::add(std::span<const uint8_t> data) {
     memcpy(chunk, data.data() + inoffset, data.size() - inoffset);
 }
 
-SHA1::operator std::vector<uint8_t>() const {
+SHA1::operator std::array<uint8_t,20>() const {
   auto copy = *this;
   uint64_t padsize = 64 - ((msglength + 8) % (64));
   uint8_t zeroes[64+1] = {0x80};
@@ -48,10 +48,10 @@ SHA1::operator std::vector<uint8_t>() const {
     len >>= 8;
   }
   copy.add(std::span<const uint8_t>(msgsize, 8));
-  std::vector<uint8_t> output;
+  std::array<uint8_t,20> output;
   for (size_t i = 0; i < 5; i++) {
     for (size_t j = 0; j < sizeof(h[0]); j++) {
-      output.push_back((copy.h[i] >> ((8*sizeof(h[0]) - 8 - 8*j))) & 0xFF);
+      output[j+4*i] = ((copy.h[i] >> ((8*sizeof(h[0]) - 8 - 8*j))) & 0xFF);
     }
   }
   return output;
@@ -60,7 +60,7 @@ SHA1::operator std::vector<uint8_t>() const {
 SHA1::operator std::string() const {
   static const char hextab[] = "0123456789abcdef";
   std::string str;
-  for (const auto& c : std::vector<uint8_t>(*this)) {
+  for (const auto& c : data()) {
     str.push_back(hextab[c >> 4]);
     str.push_back(hextab[c & 0xF]);
   }

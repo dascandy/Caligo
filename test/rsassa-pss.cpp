@@ -24,7 +24,7 @@ void test_pss(std::span<const uint8_t> n,
   CHECK(isOk);
 
   rsa_private_key<Bits> privkey = rsa_private_key<Bits>(bignum<Bits>(nn), bignum<Bits>(dd));
-  std::vector<uint8_t> msghash = Hash(msg);
+  std::array<uint8_t, Hash::hashsize> msghash = Hash(msg);
   std::vector<uint8_t> salt2(salt.begin(), salt.end());
   salt2[0] ^= 1;
   std::vector<uint8_t> newSig = privkey.template signPssSignature<Hash, Caligo::MGF1<SHA1>>(msghash, salt2);

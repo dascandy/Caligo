@@ -34,7 +34,7 @@ std::vector<uint8_t> PKCS1(std::span<const uint8_t> data, size_t requestedSize) 
     Hash hash;
     hash.add(prefix);
     hash.add(data);
-    std::vector<uint8_t> hashBytes = hash;
+    std::array<uint8_t,Hash::hashsize> hashBytes = hash;
     rv.insert(rv.end(), hashBytes.begin(), hashBytes.end());
   }
   return rv;

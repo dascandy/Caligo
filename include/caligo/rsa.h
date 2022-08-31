@@ -32,7 +32,7 @@ struct MGF1 {
     while (T.size() < length) {
       //  3B.  (repeatedly, while incrementing C) Concatenate the hash of the seed mgfSeed and C to the octet string T:
       //         T = T || Hash(mgfSeed || C) .
-      std::vector<uint8_t> hv = Hash(C);
+      std::array<uint8_t, Hash::hashsize> hv = Hash(C);
       T.insert(T.end(), hv.begin(), hv.end());
       C[C.size() - 1]++;
       if (C[C.size() - 1] == 0) {
@@ -70,7 +70,7 @@ std::vector<uint8_t> generatePssData(std::span<const uint8_t> data, std::span<co
   Hh.add(std::vector<uint8_t>({0,0,0,0,0,0,0,0}));
   Hh.add(data);
   Hh.add(salt);
-  std::vector<uint8_t> H = Hh;
+  std::array<uint8_t, Hash::hashsize> H = Hh;
   std::vector<uint8_t> dbmask = MGF1<Hash>::MGF(H, desiredLength - Hash::hashsize - 1);
   dbmask[dbmask.size() - salt.size() - 1] ^= 0x01;
   for (size_t n = 0; n < salt.size(); n++) {
@@ -118,7 +118,7 @@ struct rsa_public_key {
     dSigV.resize(sig.size());
     std::reverse(dSigV.begin(), dSigV.end());
     std::vector<uint8_t> salt = Caligo::getSalt<Hash, MGF::hashsize>(dSigV);
-    std::vector<uint8_t> hMessage = Hash(message);
+    std::array<uint8_t, Hash::hashsize> hMessage = Hash(message);
     std::vector<uint8_t> pssdata = Caligo::generatePssData<Hash>(hMessage, salt, dSigV.size());
     pssdata[0] &= 0x7F;
     return dSigV == pssdata;

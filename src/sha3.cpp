@@ -24,16 +24,16 @@ void Caligo::SHA3<size>::add(std::span<const uint8_t> data) {
 }
 
 template <size_t size>
-Caligo::SHA3<size>::operator std::vector<uint8_t>() const {
+Caligo::SHA3<size>::operator std::array<uint8_t,hashsize>() const {
   SHA3<size> copy = *this;
   size_t chunksize = r/8;
   size_t offset = msglength % (r / 8);
   copy.s[offset / 8] ^= ((uint64_t)0x06 << ((offset % 8) * 8));
   copy.s[(chunksize / 8) - 1] ^= 0x8000000000000000ULL;
   copy.processChunk();
-  std::vector<uint8_t> rv;
+  std::array<uint8_t, hashsize> rv;
   for (size_t n = 0; n < size/8; n++) {
-    rv.push_back(copy.s[n / 8] >> (8 * (n % 8)));
+    rv[n] = (copy.s[n / 8] >> (8 * (n % 8)));
   }
   return rv;
 }
@@ -41,7 +41,7 @@ template <size_t size>
 Caligo::SHA3<size>::operator std::string() const {
   static const char hextab[] = "0123456789abcdef";
   std::string str;
-  for (const auto& c : std::vector<uint8_t>(*this)) {
+  for (const auto& c : data()) {
     str.push_back(hextab[c >> 4]);
     str.push_back(hextab[c & 0xF]);
   }

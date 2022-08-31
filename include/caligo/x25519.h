@@ -77,7 +77,6 @@ struct ec_value {
     v = nv4;
   }
   void normalize() {
-    // TODO: replace with bit-set and bit-clear
     v.clear_bit(0);
     v.clear_bit(1);
     v.clear_bit(2);
@@ -155,6 +154,8 @@ inline ec_value X25519(ec_value k, ec_value u) {
    rv.applyModulus();
    return rv;
 }
+
+
 
 }
 

@@ -15,17 +15,18 @@ template <>
 struct SHA2<256> {
   static constexpr size_t hashsize = 32;
   SHA2();
-  inline SHA2(std::span<const uint8_t> data)
+  template <typename... T>
+  inline SHA2(T... ts)
   : SHA2()
-  {
-    add(data);
+  { 
+    (add(ts), ...);
   }
-  inline SHA2(std::string_view str)
-  : SHA2(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
-  {
+  inline void add(std::string_view str) { 
+    add(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()));
   }
   void add(std::span<const uint8_t> data);
-  operator std::vector<uint8_t>() const;
+  operator std::array<uint8_t, hashsize>() const;
+  std::array<uint8_t, hashsize> data() const { return *this; }
   operator std::string() const;
   static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20 };
@@ -44,17 +45,18 @@ template <>
 struct SHA2<512> {
   static constexpr size_t hashsize = 64;
   SHA2();
-  inline SHA2(std::span<const uint8_t> data)
+  template <typename... T>
+  inline SHA2(T... ts)
   : SHA2()
   {
-    add(data);
+    (add(ts), ...);
   }
-  inline SHA2(std::string_view str)
-  : SHA2(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
-  {
-  } 
+  inline void add(std::string_view str) {
+    add(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()));
+  }
   void add(std::span<const uint8_t> data);
-  operator std::vector<uint8_t>() const; 
+  operator std::array<uint8_t, hashsize>() const;
+  std::array<uint8_t, hashsize> data() const { return *this; }
   operator std::string() const;
   static inline std::vector<uint8_t> getAsn1Id() {
     return std::initializer_list<uint8_t>{ 0x30, 0x51, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05, 0x00, 0x04, 0x40 };
@@ -75,22 +77,23 @@ struct SHA2<384> : private SHA2<512> {
   inline SHA2() {
     sha384_override();
   }
-  inline SHA2(std::span<const uint8_t> data)
-  : SHA2<512>()
+  template <typename... T>
+  inline SHA2(T... ts)
+  : SHA2()
   {
-    sha384_override();
-    add(data);
+    (add(ts), ...);
   }
-  inline SHA2(std::string_view str)
-  : SHA2(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
-  {
-  } 
+  inline void add(std::string_view str) { 
+    add(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()));
+  }
   void sha384_override();
-  inline operator std::vector<uint8_t>() const {
-    std::vector<uint8_t> hash = *((SHA2<512>*)this);
-    hash.resize(hashsize);
-    return hash;
+  inline operator std::array<uint8_t, hashsize>() const {
+    std::array<uint8_t, SHA2<512>::hashsize> hash = *((SHA2<512>*)this);
+    std::array<uint8_t, hashsize> hashcopy;
+    std::copy(hash.begin(), hash.begin() + 64, hashcopy.begin());
+    return hashcopy;
   }
+  std::array<uint8_t, hashsize> data() const { return *this; }
   operator std::string() const;
   using SHA2<512>::add;
   static inline std::vector<uint8_t> getAsn1Id() {

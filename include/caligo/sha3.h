@@ -13,17 +13,18 @@ struct SHA3 {
   static constexpr size_t hashsize = size/8;
   static constexpr size_t r = 1600 - 2 * size;
   SHA3();
-  inline SHA3(std::span<const uint8_t> data)
+  template <typename... T>
+  inline SHA3(T... ts)
   : SHA3()
   {
-    add(data);
+    (add(ts), ...);
   }
-  inline SHA3(std::string_view str)
-  : SHA3(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()))
-  {
-  } 
+  inline void add(std::string_view str) { 
+    add(std::span<const uint8_t>((const uint8_t*)str.data(), str.size()));
+  }
   void add(std::span<const uint8_t> data);
-  operator std::vector<uint8_t>() const;
+  operator std::array<uint8_t, hashsize>() const;
+  std::array<uint8_t, hashsize> data() const { return *this; }
   operator std::string() const;
   static inline std::vector<uint8_t> getAsn1Id();
   static size_t MaxLength() {
