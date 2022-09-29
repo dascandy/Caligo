@@ -27,6 +27,9 @@ struct MD5 {
   static size_t MaxLength() {
     return (1ULL << 61) - 1;
   }
+  static inline std::vector<uint8_t> getAsn1Id() {
+    return std::initializer_list<uint8_t>{ 0x30, 0x20, 0x30, 0x0c, 0x06, 0x08, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x02, 0x05, 0x05, 0x00, 0x04, 0x10 };
+  }
 private:
   void processChunk();
   uint8_t chunk[64];
