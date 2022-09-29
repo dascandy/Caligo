@@ -35,8 +35,8 @@ std::vector<uint8_t> HKDF_Expand(std::span<const uint8_t> prk, std::span<const u
     lastT.insert(lastT.end(), info.begin(), info.end());
     lastT.push_back(n++);
     std::array<uint8_t, Hash::hashsize> hash = HMAC<Hash>(std::move(lastT), prk);
-    buffer.insert(buffer.end(), lastT.begin(), lastT.end());
     lastT = std::vector<uint8_t>(hash.begin(), hash.end());
+    buffer.insert(buffer.end(), lastT.begin(), lastT.end());
   }
   buffer.resize(len);
   return buffer;
