@@ -1,7 +1,7 @@
 #include <caligo/rsa.h>
 #include <caligo/sha1.h>
 #include <caligo/sha2.h>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 namespace Caligo {
 
