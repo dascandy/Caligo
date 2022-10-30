@@ -113,6 +113,9 @@ std::map<std::string, std::function<bool(nlohmann::json, nlohmann::json)>> testC
 */
 
 TEST_CASE("wycheproof test suites", "[wycheproof]") {
+  if (not std::filesystem::is_directory("wycheproof/testvectors")) {
+    return;
+  }
   std::map<std::string, size_t> testsSkipped;
   for (auto& entry : std::filesystem::directory_iterator("wycheproof/testvectors")) {
     if (not entry.is_regular_file()) continue;
