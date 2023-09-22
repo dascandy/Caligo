@@ -13,12 +13,8 @@ struct CTR {
   : sched(key_iv.key)
   , iv(key_iv.iv)
   {
-    if (iv.size() == 8 ||
-        iv.size() > Cipher::size - 4) {
-      auto reduced_iv = ghash(iv, {});
-      iv.resize(16);
-      std::copy_n(reduced_iv.begin(), 16, iv.begin());
-    } else if (iv.size() < Cipher::size - 4) {
+    if (key_iv.key.size() != Cipher::keysize ||
+        key_iv.iv.size() != Cipher::size) {
       throw std::runtime_error("Invalid IV");
     }
   }
