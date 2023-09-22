@@ -22,14 +22,21 @@ static constexpr int8_t valueOf[256] = {
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 };
 
-static constexpr char encodingOf[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const char* getLookupFor(Base64CharSet charSet) {
+  switch(charSet) {
+    case PlusSlash: return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    case PlusComma: return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
+    case MinusUnderscore: return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  }
+}
 
-std::string base64(std::span<const uint8_t> data) {
+std::string base64(std::span<const uint8_t> data, bool withNewlines, bool omitEqs, Base64CharSet charSet) {
+  const char* encodingOf = getLookupFor(charSet);
   std::string out;
   out.reserve((data.size() * 4) / 3 + 4);
   uint32_t value = 0;
   size_t count = 0;
-  size_t numInOut = 0;
+  size_t blocksOnLine = 0;
   for (auto b : data) {
     value = (value << 8) | b;
     count++;
@@ -38,12 +45,14 @@ std::string base64(std::span<const uint8_t> data) {
       out.push_back(encodingOf[(value >> 12) & 0x3F]);
       out.push_back(encodingOf[(value >>  6) & 0x3F]);
       out.push_back(encodingOf[(value >>  0) & 0x3F]);
-      numInOut++;
-      if (numInOut == 19) {
-        out.push_back('\n');
-        numInOut = 0;
-      }
       count = 0;
+      blocksOnLine++;
+      if (blocksOnLine == 19) {
+        if (withNewlines) {
+          out.push_back('\n');
+        }
+        blocksOnLine = 0;
+      }
     }
   }
   switch(count) {
@@ -52,17 +61,23 @@ std::string base64(std::span<const uint8_t> data) {
   case 1:
     out.push_back(encodingOf[(value >> 2) & 0x3F]);
     out.push_back(encodingOf[(value << 4) & 0x3F]);
-    out.push_back('=');
-    out.push_back('=');
+    if (not omitEqs) {
+      out.push_back('=');
+      out.push_back('=');
+    }
     break;
   case 2:
     out.push_back(encodingOf[(value >> 10) & 0x3F]);
     out.push_back(encodingOf[(value >> 4) & 0x3F]);
     out.push_back(encodingOf[(value << 2) & 0x3F]);
-    out.push_back('=');
+    if (not omitEqs) {
+      out.push_back('=');
+    }
     break;
   }
-  out.push_back('\n');
+  if (withNewlines) {
+    out.push_back('\n');
+  }
   return out;
 }
 
